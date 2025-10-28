@@ -16,9 +16,12 @@ export const ProductCard = ({ name, price, oldPrice, discount, availability, onC
 
   return (
     <div 
-      className="bg-card rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-border cursor-pointer group"
+      className="relative bg-card rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-border hover:border-primary/40 cursor-pointer group"
       onClick={onClick}
     >
+      {/* Decorative corner accents */}
+      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
       {discount && (
         <div className="relative">
           <span className="absolute top-3 left-3 bg-accent text-accent-foreground px-3 py-1 rounded-full text-xs font-bold z-10 shadow-lg">
@@ -39,6 +42,8 @@ export const ProductCard = ({ name, price, oldPrice, discount, availability, onC
           }`}
           onLoad={() => setImageLoaded(true)}
         />
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
       <div className="p-4">

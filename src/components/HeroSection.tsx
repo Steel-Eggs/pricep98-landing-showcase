@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { DecorativeBlob } from "./DecorativeBlob";
 
 export const HeroSection = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -79,6 +80,11 @@ export const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Decorative Blobs */}
+      <DecorativeBlob color="primary" size="xl" className="top-10 -left-20 opacity-30" />
+      <DecorativeBlob color="accent" size="lg" className="bottom-20 right-10 opacity-20" />
+      <DecorativeBlob color="primary" size="md" className="top-1/3 right-1/4 opacity-25" />
+      
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -86,8 +92,8 @@ export const HeroSection = () => {
           alt="Прицеп Титан 2013-05" 
           className="w-full h-full object-cover"
         />
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/50"></div>
+        {/* Enhanced Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/75 to-background/40"></div>
       </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
@@ -135,7 +141,9 @@ export const HeroSection = () => {
 
           {/* Right Section: Contact Form */}
           <div className="lg:col-span-1">
-            <div className="bg-card/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl border border-border animate-fade-in">
+            <div className="relative bg-card/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl border-2 border-primary/30 animate-fade-in">
+              {/* Glowing border effect */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 blur-xl -z-10"></div>
               <h3 className="text-lg md:text-xl font-bold mb-4 text-center">Отправить заявку</h3>
               
               <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">

@@ -1,5 +1,6 @@
 import { MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DecorativeBlob } from "./DecorativeBlob";
 
 export const LocationSection = () => {
   const handleNavigate = () => {
@@ -14,8 +15,12 @@ export const LocationSection = () => {
   };
 
   return (
-    <section id="location" className="py-16 md:py-20 bg-secondary/30 scroll-mt-24">
-      <div className="container mx-auto px-4">
+    <section id="location" className="relative py-16 md:py-20 bg-secondary/30 scroll-mt-24 overflow-hidden">
+      {/* Decorative Elements */}
+      <DecorativeBlob color="primary" size="xl" className="top-0 right-0 opacity-15" />
+      <DecorativeBlob color="accent" size="lg" className="bottom-0 left-0 opacity-20" />
+      
+      <div className="container mx-auto px-4 relative z-10">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
           Где купить
         </h2>
@@ -65,7 +70,9 @@ export const LocationSection = () => {
             </div>
           </div>
 
-          <div className="relative h-[400px] lg:h-[500px] rounded-xl overflow-hidden shadow-lg">
+          <div className="relative h-[400px] lg:h-[500px] rounded-xl overflow-hidden shadow-2xl border-2 border-primary/20">
+            {/* Decorative map frame */}
+            <div className="absolute inset-0 rounded-xl border-4 border-transparent bg-gradient-to-br from-primary/30 via-transparent to-accent/30 pointer-events-none z-10"></div>
             <iframe
               src="https://yandex.ru/map-widget/v1/?ll=30.361,59.931&z=12&l=map"
               width="100%"

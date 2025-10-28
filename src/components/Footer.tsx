@@ -1,6 +1,7 @@
 import { Phone, Mail, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoMono from "@/assets/logo-mono.png";
+import developerLogo from "@/assets/developer-logo.png";
 
 export const Footer = () => {
   const menuItems = [
@@ -106,8 +107,23 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-background/20 pt-8 text-center text-sm text-background/70">
-          <p>2025 © Все права защищены. ПРИЦЕП98</p>
+        <div className="border-t border-background/20 pt-6 pb-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 order-2 md:order-1">
+              <img 
+                src={developerLogo} 
+                alt="Steel Eggs" 
+                className="h-7 w-auto opacity-80 hover:opacity-100 transition-opacity" 
+              />
+              <span className="text-sm text-background/60">
+                разработка и развитие сайтов
+              </span>
+            </div>
+            
+            <p className="text-sm text-background/70 order-1 md:order-2">
+              2025 © Все права защищены. ПРИЦЕП98
+            </p>
+          </div>
         </div>
       </div>
     </footer>

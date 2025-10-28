@@ -1,4 +1,5 @@
 import { Truck, Shield, Wrench, CreditCard, Clock, Award } from "lucide-react";
+import { DecorativeBlob } from "./DecorativeBlob";
 
 const benefits = [
   {
@@ -35,8 +36,12 @@ const benefits = [
 
 export const BenefitsSection = () => {
   return (
-    <section className="py-16 md:py-24 bg-secondary/30">
-      <div className="container mx-auto px-4">
+    <section className="relative py-16 md:py-24 bg-secondary/30 overflow-hidden">
+      {/* Decorative Background Elements */}
+      <DecorativeBlob color="accent" size="lg" className="top-10 -right-20 opacity-20" />
+      <DecorativeBlob color="primary" size="xl" className="bottom-0 -left-32 opacity-15" />
+      
+      <div className="container mx-auto px-4 relative z-10">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
           10 лет продаём прицепы по всему Северо-Западу
         </h2>
@@ -48,11 +53,16 @@ export const BenefitsSection = () => {
           {benefits.map((benefit, idx) => (
             <div
               key={idx}
-              className="bg-card rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in border border-border"
+              className="group relative bg-card rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fade-in border-2 border-transparent hover:border-primary/30 overflow-hidden"
               style={{ animationDelay: `${idx * 100}ms` }}
             >
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                <benefit.icon className="w-6 h-6 text-primary" />
+              {/* Gradient background on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              {/* Icon with gradient background */}
+              <div className="relative w-14 h-14 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <benefit.icon className="w-7 h-7 text-white" />
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </div>
               <h3 className="text-lg font-bold mb-2">{benefit.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
