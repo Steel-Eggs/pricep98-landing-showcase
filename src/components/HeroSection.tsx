@@ -91,7 +91,7 @@ export const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-[85vh] flex items-start overflow-hidden pt-20">
       {/* Decorative Blobs */}
       <DecorativeBlob color="primary" size="xl" className="top-10 -left-20 opacity-30" />
       <DecorativeBlob color="accent" size="lg" className="bottom-20 right-10 opacity-20" />
@@ -102,13 +102,13 @@ export const HeroSection = () => {
         <img 
           src={trailerImage} 
           alt="Прицеп Титан 2013-05" 
-          className="w-full h-full object-cover animate-zoom-slow"
+          className="w-full h-full object-cover animate-zoom-slow brightness-110 contrast-125"
         />
         {/* Enhanced Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/75 to-background/40"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 relative z-10">
+      <div className="container mx-auto px-4 py-4 relative z-10">
         <div className="grid lg:grid-cols-3 gap-6 items-start">
           {/* Left Section: Title, Offer, and Timer */}
           <div className="lg:col-span-2 space-y-6">
