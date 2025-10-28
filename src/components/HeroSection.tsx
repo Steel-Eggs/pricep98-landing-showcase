@@ -78,35 +78,40 @@ export const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 to-background py-12 md:py-20">
-      <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 relative">
-            <div className="text-center mb-8 animate-fade-in">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4">
+    <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src={trailerImage} 
+          alt="Прицеп Титан 2013-05" 
+          className="w-full h-full object-cover"
+        />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/50"></div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-6 items-start">
+          {/* Left Section: Title, Offer, and Timer */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title and Offer */}
+            <div className="animate-fade-in">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-foreground">
                 Более 50 моделей легковых прицепов!
               </h1>
-              <div className="inline-block bg-accent text-accent-foreground px-6 py-3 rounded-lg shadow-lg">
-                <p className="text-xl md:text-2xl font-bold mb-1">Прицеп Титан 2013-05</p>
-                <p className="text-lg">со СКИДКОЙ 10%</p>
+              <div className="inline-block bg-accent text-accent-foreground px-4 py-2 md:px-6 md:py-3 rounded-lg shadow-lg">
+                <p className="text-lg md:text-xl lg:text-2xl font-bold">Прицеп Титан 2013-05</p>
+                <p className="text-base md:text-lg">со СКИДКОЙ 10%</p>
               </div>
             </div>
 
-            <div className="relative mb-8 animate-scale-in">
-              <img 
-                src={trailerImage} 
-                alt="Прицеп Титан 2013-05" 
-                className="w-full h-auto rounded-lg shadow-2xl"
-              />
-            </div>
-
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-xl animate-slide-up">
-              <p className="text-center text-lg md:text-xl font-semibold mb-6 text-foreground">
-                АКЦИЯ<br />
-                До конца акции осталось
+            {/* Timer */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl animate-scale-in max-w-2xl">
+              <p className="text-center text-base md:text-lg font-semibold mb-4 text-foreground">
+                АКЦИЯ • До конца акции осталось
               </p>
               
-              <div className="grid grid-cols-4 gap-3 md:gap-6 max-w-2xl mx-auto">
+              <div className="grid grid-cols-4 gap-2 md:gap-4">
                 {[
                   { value: timeLeft.days, label: "дней" },
                   { value: timeLeft.hours, label: "часов" },
@@ -114,12 +119,12 @@ export const HeroSection = () => {
                   { value: timeLeft.seconds, label: "секунд" },
                 ].map((item, idx) => (
                   <div key={idx} className="text-center">
-                    <div className="bg-primary text-primary-foreground rounded-xl p-3 md:p-6 shadow-lg mb-2">
-                      <span className="text-3xl md:text-5xl font-bold block">
+                    <div className="bg-primary text-primary-foreground rounded-lg md:rounded-xl p-2 md:p-4 shadow-lg mb-1 md:mb-2">
+                      <span className="text-2xl md:text-4xl lg:text-5xl font-bold block">
                         {String(item.value).padStart(2, "0")}
                       </span>
                     </div>
-                    <span className="text-xs md:text-sm text-muted-foreground font-medium">
+                    <span className="text-xs md:text-sm text-foreground font-medium">
                       {item.label}
                     </span>
                   </div>
@@ -128,13 +133,14 @@ export const HeroSection = () => {
             </div>
           </div>
 
+          {/* Right Section: Contact Form */}
           <div className="lg:col-span-1">
-            <div className="bg-card rounded-2xl p-6 shadow-xl border border-border sticky top-24 animate-fade-in">
-              <h3 className="text-xl font-bold mb-6 text-center">Отправить заявку</h3>
+            <div className="bg-card/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl border border-border animate-fade-in">
+              <h3 className="text-lg md:text-xl font-bold mb-4 text-center">Отправить заявку</h3>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
                 <div>
-                  <Label htmlFor="hero-name">Имя</Label>
+                  <Label htmlFor="hero-name" className="text-sm">Имя</Label>
                   <Input
                     id="hero-name"
                     value={name}
@@ -145,7 +151,7 @@ export const HeroSection = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="hero-phone">Телефон</Label>
+                  <Label htmlFor="hero-phone" className="text-sm">Телефон</Label>
                   <Input
                     id="hero-phone"
                     value={phone}

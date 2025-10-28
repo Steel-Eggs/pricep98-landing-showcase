@@ -1,4 +1,5 @@
 import { Award } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export const QualityBadge = () => {
   return (
@@ -14,9 +15,13 @@ export const QualityBadge = () => {
             </div>
           </div>
           
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 animate-fade-in">
-            ПРИЦЕПЫ<span className="text-primary">98</span>
-          </h2>
+          <div className="mb-4 animate-fade-in">
+            <img 
+              src={logo} 
+              alt="ПРИЦЕПЫ98" 
+              className="h-16 md:h-20 lg:h-24 w-auto"
+            />
+          </div>
           
           <div className="relative">
             <p className="text-xl md:text-2xl font-semibold text-muted-foreground mb-2 animate-slide-up">
