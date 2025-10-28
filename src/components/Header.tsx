@@ -23,7 +23,7 @@ export const Header = () => {
           <div className="flex items-center gap-8">
             <img src={logo} alt="ПРИЦЕП98" className="h-10" />
             <p className="hidden lg:block text-sm text-muted-foreground">
-              Качественные прицепы по доступным ценам
+              Ваша надёжность на дорогах
             </p>
           </div>
           

@@ -1,6 +1,6 @@
 import { Phone, Mail, MapPin, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
+import logoMono from "@/assets/logo-mono.png";
 
 export const Footer = () => {
   const menuItems = [
@@ -16,7 +16,7 @@ export const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
-            <img src={logo} alt="ПРИЦЕП98" className="h-10 mb-4 brightness-0 invert" />
+            <img src={logoMono} alt="ПРИЦЕП98" className="h-10 mb-4" />
             <p className="text-sm text-background/70 mb-4">
               Качественные прицепы по доступным ценам с 2014 года
             </p>
