@@ -292,7 +292,7 @@ export const HeroSection = () => {
                 {titanProduct.discount}
               </div>
 
-              {/* Product Image */}
+              {/* Product Image with Overlay Info */}
               <div className="relative aspect-[16/8] bg-secondary overflow-hidden">
                 {!imageLoaded && (
                   <div className="absolute inset-0 animate-pulse bg-muted"></div>
@@ -305,7 +305,44 @@ export const HeroSection = () => {
                   }`}
                   onLoad={() => setImageLoaded(true)}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                {/* Enhanced gradient for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                
+                {/* Availability Badge - Bottom Left */}
+                <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm text-primary text-xs font-medium px-3 py-1 rounded-full shadow-lg">
+                  {titanProduct.availability}
+                </div>
+                
+                {/* Product Name and Prices - Bottom Center */}
+                <div className="absolute bottom-16 left-6 right-6">
+                  <h3 className="font-bold text-2xl mb-2 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
+                    {titanProduct.name}
+                  </h3>
+                  <div className="flex items-end gap-3 mb-3">
+                    {titanProduct.oldPrice && (
+                      <p className="text-base text-white/70 line-through drop-shadow-lg">
+                        {titanProduct.oldPrice}
+                      </p>
+                    )}
+                    <p className="text-3xl font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
+                      {titanProduct.price}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Button - Bottom */}
+                <div className="absolute bottom-4 left-6 right-6 flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-white/50 w-full md:w-auto md:px-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsProductModalOpen(true);
+                    }}
+                  >
+                    Подробнее
+                  </Button>
+                </div>
               </div>
 
               {/* Timer - Compact Horizontal */}
@@ -331,53 +368,6 @@ export const HeroSection = () => {
                       </span>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* Product Details */}
-              <div className="p-4">
-                <span className="inline-block bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full mb-3">
-                  {titanProduct.availability}
-                </span>
-                
-                <h3 className="font-bold text-xl mb-4 group-hover:text-primary transition-colors">
-                  {titanProduct.name}
-                </h3>
-
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    {titanProduct.oldPrice && (
-                      <p className="text-base text-muted-foreground line-through">
-                        {titanProduct.oldPrice}
-                      </p>
-                    )}
-                    <p className="text-2xl md:text-3xl font-bold text-foreground">
-                      {titanProduct.price}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline" 
-                    className="hover:bg-primary hover:text-primary-foreground transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsProductModalOpen(true);
-                    }}
-                  >
-                    Подробнее
-                  </Button>
-                  <Button 
-                    variant="default"
-                    className="bg-accent hover:bg-accent-hover transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.success("Наш менеджер свяжется с вами!");
-                    }}
-                  >
-                    Узнать цену
-                  </Button>
                 </div>
               </div>
             </div>

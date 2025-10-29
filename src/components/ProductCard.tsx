@@ -68,29 +68,17 @@ export const ProductCard = ({ name, price, oldPrice, discount, availability, onC
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="hover:bg-primary hover:text-primary-foreground transition-all"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
-          >
-            Подробнее
-          </Button>
-          <Button 
-            variant="default"
-            size="sm"
-            className="bg-accent hover:bg-accent-hover transition-all"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            Узнать цену
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="w-full hover:bg-primary hover:text-primary-foreground transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+        >
+          Подробнее
+        </Button>
       </div>
     </div>
   );
