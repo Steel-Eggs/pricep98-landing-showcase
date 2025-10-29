@@ -264,32 +264,32 @@ export const HeroSection = () => {
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-[1]"></div>
 
-      <div className="container mx-auto px-4 py-4 relative z-10">
+      <div className="container mx-auto px-4 py-2 relative z-10">
         {/* Title */}
-        <div className="animate-fade-in mb-6">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
+        <div className="animate-fade-in mb-3">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground">
             <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
               Более 50 моделей
             </span>
             <br />
             <span className="relative">
               легковых прицепов!
-              <Sparkles className="absolute -top-2 -right-10 w-6 h-6 text-accent animate-pulse" />
+              <Sparkles className="absolute -top-2 -right-10 w-8 h-8 text-accent animate-pulse" />
             </span>
           </h1>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-5 items-start">
           {/* Left Section: Product Card */}
           <div className="lg:col-span-2">
 
             {/* Product Card with Timer */}
             <div 
-              className="relative bg-card rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 border-2 border-primary/40 cursor-pointer group animate-scale-in max-w-2xl"
+              className="relative bg-card rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 border-2 border-primary/40 cursor-pointer group animate-scale-in"
               onClick={() => setIsProductModalOpen(true)}
             >
               {/* Discount Badge - Right Side */}
-              <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-4 py-2 rounded-lg text-sm font-bold z-20 shadow-lg animate-pulse">
+              <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-6 py-3 rounded-lg text-base font-bold z-20 shadow-lg animate-pulse">
                 {titanProduct.discount}
               </div>
 
@@ -310,22 +310,22 @@ export const HeroSection = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                 
                 {/* Availability Badge - Bottom Left */}
-                <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm text-primary text-xs font-medium px-3 py-1 rounded-full shadow-lg">
+                <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm text-primary text-sm font-medium px-4 py-2 rounded-full shadow-lg">
                   {titanProduct.availability}
                 </div>
                 
                 {/* Product Name and Prices - Bottom Center */}
                 <div className="absolute bottom-16 left-6 right-6">
-                  <h3 className="font-bold text-2xl mb-2 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
+                  <h3 className="font-bold text-3xl md:text-4xl mb-2 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
                     {titanProduct.name}
                   </h3>
                   <div className="flex items-end gap-3 mb-3">
                     {titanProduct.oldPrice && (
-                      <p className="text-base text-white/70 line-through drop-shadow-lg">
+                      <p className="text-lg md:text-xl text-white/70 line-through drop-shadow-lg">
                         {titanProduct.oldPrice}
                       </p>
                     )}
-                    <p className="text-3xl font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
+                    <p className="text-4xl md:text-5xl font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
                       {titanProduct.price}
                     </p>
                   </div>
@@ -335,7 +335,7 @@ export const HeroSection = () => {
                 <div className="absolute bottom-4 left-6 right-6 flex justify-center">
                   <Button 
                     variant="outline" 
-                    className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-white/50 w-full md:w-auto md:px-8"
+                    className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white border-white/50 w-full md:w-auto md:px-8 text-lg py-6"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsProductModalOpen(true);
@@ -347,11 +347,11 @@ export const HeroSection = () => {
               </div>
 
               {/* Timer - Compact Horizontal */}
-              <div className="bg-gradient-to-r from-primary via-accent to-primary p-3">
-                <p className="text-white text-center text-sm font-semibold mb-2">
+              <div className="bg-gradient-to-r from-primary via-accent to-primary p-4 md:p-6">
+                <p className="text-white text-center text-base md:text-lg font-semibold mb-3">
                   ⏰ До конца акции осталось:
                 </p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-3 md:gap-4">
                   {[
                     { value: timeLeft.days, label: "дней" },
                     { value: timeLeft.hours, label: "часов" },
@@ -359,12 +359,12 @@ export const HeroSection = () => {
                     { value: timeLeft.seconds, label: "секунд" },
                   ].map((item, idx) => (
                     <div key={idx} className="text-center">
-                      <div className="bg-white/90 rounded-lg p-2 mb-1">
-                        <span className="text-xl md:text-2xl font-black text-primary">
+                      <div className="bg-white/90 rounded-lg p-3 md:p-4 mb-2">
+                        <span className="text-3xl md:text-4xl lg:text-5xl font-black text-primary">
                           {String(item.value).padStart(2, "0")}
                         </span>
                       </div>
-                      <span className="text-xs text-white font-medium uppercase">
+                      <span className="text-sm md:text-base text-white font-medium uppercase">
                         {item.label}
                       </span>
                     </div>
@@ -376,33 +376,33 @@ export const HeroSection = () => {
 
           {/* Right Section: Contact Form */}
           <div className="lg:col-span-1">
-            <div className="sticky top-4 bg-card/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl border-2 border-primary/30 animate-fade-in">
+            <div className="sticky top-4 bg-card/95 backdrop-blur-md rounded-2xl p-6 md:p-8 shadow-2xl border-2 border-primary/30 animate-fade-in">
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 blur-xl -z-10"></div>
               
-              <h3 className="text-xl font-bold mb-4 text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h3 className="text-2xl md:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Отправить заявку
               </h3>
               
-              <form onSubmit={handleSubmit} className="space-y-3">
+              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
                 <div>
-                  <Label htmlFor="hero-name" className="text-sm font-semibold">Имя</Label>
+                  <Label htmlFor="hero-name" className="text-base md:text-lg font-semibold">Имя</Label>
                   <Input
                     id="hero-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ваше имя"
-                    className="mt-2 h-10"
+                    className="mt-2 h-12 md:h-14 text-base md:text-lg"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="hero-phone" className="text-sm font-semibold">Телефон</Label>
+                  <Label htmlFor="hero-phone" className="text-base md:text-lg font-semibold">Телефон</Label>
                   <Input
                     id="hero-phone"
                     value={phone}
                     onChange={handlePhoneChange}
                     placeholder="+7 (___) ___-__-__"
-                    className="mt-2 h-10"
+                    className="mt-2 h-12 md:h-14 text-base md:text-lg"
                   />
                 </div>
                 
@@ -413,14 +413,14 @@ export const HeroSection = () => {
                     onCheckedChange={(checked) => setAgreed(checked as boolean)}
                     className="mt-1"
                   />
-                  <label htmlFor="hero-agree" className="text-xs text-muted-foreground leading-tight cursor-pointer">
+                  <label htmlFor="hero-agree" className="text-sm text-muted-foreground leading-tight cursor-pointer">
                     Я согласен с политикой конфиденциальности
                   </label>
                 </div>
                 
                 <Button 
                   type="submit" 
-                  className="w-full h-10 bg-accent hover:bg-accent-hover transition-all shadow-lg text-base font-semibold"
+                  className="w-full h-12 md:h-14 bg-accent hover:bg-accent-hover transition-all shadow-lg text-lg md:text-xl font-semibold"
                 >
                   Отправить
                 </Button>
