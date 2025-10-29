@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import trailerImage from "@/assets/trailer-hero.webp";
-import { CallbackModal } from "./CallbackModal";
 import { ProductModal } from "./ProductModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { DecorativeBlob } from "./DecorativeBlob";
 import { Sparkles } from "lucide-react";
+
+declare global {
+  interface Window {
+    THREE: any;
+  }
+}
 
 export const HeroSection = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -21,6 +25,8 @@ export const HeroSection = () => {
   const [phone, setPhone] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const titanProduct = {
     id: "11",
@@ -31,6 +37,7 @@ export const HeroSection = () => {
     discount: "СКИДКА 10%"
   };
 
+  // Timer countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -57,6 +64,165 @@ export const HeroSection = () => {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Three.js 3D Background
+  useEffect(() => {
+    if (!canvasRef.current || !window.THREE) return;
+
+    const THREE = window.THREE;
+    const container = canvasRef.current;
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    // Gradient background
+    const canvas = document.createElement('canvas');
+    canvas.width = 2;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const gradient = ctx.createLinearGradient(0, 0, 0, 512);
+      gradient.addColorStop(0, '#3b82f6');
+      gradient.addColorStop(0.5, '#8b5cf6');
+      gradient.addColorStop(1, '#f97316');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 2, 512);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    scene.background = texture;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    
+    const directionalLight1 = new THREE.DirectionalLight(0x3b82f6, 0.8);
+    directionalLight1.position.set(5, 5, 5);
+    scene.add(directionalLight1);
+
+    const directionalLight2 = new THREE.DirectionalLight(0xf97316, 0.6);
+    directionalLight2.position.set(-5, -5, -5);
+    scene.add(directionalLight2);
+
+    // Create 3D objects
+    const geometry1 = new THREE.TorusGeometry(1.5, 0.5, 16, 100);
+    const material1 = new THREE.MeshStandardMaterial({ 
+      color: 0x8b5cf6,
+      metalness: 0.7,
+      roughness: 0.2,
+    });
+    const torus = new THREE.Mesh(geometry1, material1);
+    torus.position.set(-3, 2, -5);
+    scene.add(torus);
+
+    const geometry2 = new THREE.SphereGeometry(1.2, 32, 32);
+    const material2 = new THREE.MeshStandardMaterial({ 
+      color: 0x3b82f6,
+      metalness: 0.6,
+      roughness: 0.3,
+    });
+    const sphere = new THREE.Mesh(geometry2, material2);
+    sphere.position.set(4, -2, -8);
+    scene.add(sphere);
+
+    const geometry3 = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+    const material3 = new THREE.MeshStandardMaterial({ 
+      color: 0xf97316,
+      metalness: 0.5,
+      roughness: 0.4,
+    });
+    const cube = new THREE.Mesh(geometry3, material3);
+    cube.position.set(-4, -3, -6);
+    scene.add(cube);
+
+    // Particles
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 500;
+    const posArray = new Float32Array(particlesCount * 3);
+    
+    for (let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 30;
+    }
+    
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 0.05,
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.6,
+    });
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+
+    camera.position.z = 5;
+
+    // Animation
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      // Rotate objects
+      torus.rotation.x += 0.003;
+      torus.rotation.y += 0.005;
+      
+      sphere.rotation.x += 0.002;
+      sphere.rotation.z += 0.004;
+      
+      cube.rotation.x += 0.004;
+      cube.rotation.y += 0.003;
+
+      // Parallax effect
+      camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+      camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+      camera.lookAt(scene.position);
+
+      // Rotate particles
+      particlesMesh.rotation.y += 0.0005;
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // Handle resize
+    const handleResize = () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
+      container.removeChild(renderer.domElement);
+      geometry1.dispose();
+      geometry2.dispose();
+      geometry3.dispose();
+      particlesGeometry.dispose();
+      material1.dispose();
+      material2.dispose();
+      material3.dispose();
+      particlesMaterial.dispose();
+      renderer.dispose();
+    };
   }, []);
 
   const formatPhone = (value: string) => {
@@ -91,119 +257,172 @@ export const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-[85vh] flex items-start overflow-hidden pt-20">
-      {/* Decorative Blobs */}
-      <DecorativeBlob color="primary" size="xl" className="top-10 -left-20 opacity-30" />
-      <DecorativeBlob color="accent" size="lg" className="bottom-20 right-10 opacity-20" />
-      <DecorativeBlob color="primary" size="md" className="top-1/3 right-1/4 opacity-25" />
+    <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* 3D Background */}
+      <div ref={canvasRef} className="absolute inset-0 z-0" />
       
-      {/* Background Image with zoom animation */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <img 
-          src={trailerImage} 
-          alt="Прицеп Титан 2013-05" 
-          className="w-full h-full object-cover animate-zoom-slow brightness-110 contrast-125"
-        />
-        {/* Enhanced Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/75 to-background/40"></div>
-      </div>
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-[1]"></div>
 
-      <div className="container mx-auto px-4 py-4 relative z-10">
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
-          {/* Left Section: Title, Offer, and Timer */}
-          <div className="lg:col-span-2 space-y-6">
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-8 items-start">
+          {/* Left Section: Title and Product Card */}
+          <div className="lg:col-span-2 space-y-8">
             {/* Title */}
             <div className="animate-fade-in">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground relative inline-block mb-6">
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-pulse">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                   Более 50 моделей
                 </span>
                 <br />
                 <span className="relative">
                   легковых прицепов!
-                  <Sparkles className="absolute -top-2 -right-8 w-6 h-6 text-accent animate-pulse" />
+                  <Sparkles className="absolute -top-2 -right-10 w-8 h-8 text-accent animate-pulse" />
                 </span>
               </h1>
             </div>
 
-            {/* Timer */}
-            <div className="bg-gradient-to-br from-white/95 to-white/85 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-2xl animate-scale-in max-w-2xl border-2 border-accent/20">
-              <div className="text-center mb-6">
-                <span className="inline-block bg-gradient-to-r from-accent to-primary text-white px-6 py-2 rounded-full text-xl md:text-2xl font-black tracking-wider shadow-lg animate-pulse">
-                  🔥 АКЦИЯ 🔥
-                </span>
-                <p className="text-sm md:text-base font-semibold mt-2 text-foreground">
-                  До конца акции осталось
-                </p>
+            {/* Product Card with Timer */}
+            <div 
+              className="relative bg-card rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 border-2 border-primary/40 cursor-pointer group animate-scale-in max-w-2xl"
+              onClick={() => setIsProductModalOpen(true)}
+            >
+              {/* Discount Badge - Right Side */}
+              <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-4 py-2 rounded-lg text-sm font-bold z-20 shadow-lg animate-pulse">
+                {titanProduct.discount}
               </div>
-              
-              <div className="grid grid-cols-4 gap-3 md:gap-4">
-                {[
-                  { value: timeLeft.days, label: "дней" },
-                  { value: timeLeft.hours, label: "часов" },
-                  { value: timeLeft.minutes, label: "минут" },
-                  { value: timeLeft.seconds, label: "секунд" },
-                ].map((item, idx) => (
-                  <div key={idx} className="text-center">
-                    <div className="bg-gradient-to-br from-primary to-primary-hover text-primary-foreground rounded-xl p-3 md:p-5 shadow-xl mb-2 border-2 border-white/30 relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/20"></div>
-                      <span className="text-3xl md:text-5xl lg:text-6xl font-black block relative z-10 drop-shadow-lg">
-                        {String(item.value).padStart(2, "0")}
+
+              {/* Product Image */}
+              <div className="relative aspect-[16/9] bg-secondary overflow-hidden">
+                {!imageLoaded && (
+                  <div className="absolute inset-0 animate-pulse bg-muted"></div>
+                )}
+                <img
+                  src={trailerImage}
+                  alt={titanProduct.name}
+                  className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  onLoad={() => setImageLoaded(true)}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+              </div>
+
+              {/* Timer - Compact Horizontal */}
+              <div className="bg-gradient-to-r from-primary via-accent to-primary p-4">
+                <p className="text-white text-center text-sm font-semibold mb-2">
+                  ⏰ До конца акции осталось:
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { value: timeLeft.days, label: "дней" },
+                    { value: timeLeft.hours, label: "часов" },
+                    { value: timeLeft.minutes, label: "минут" },
+                    { value: timeLeft.seconds, label: "секунд" },
+                  ].map((item, idx) => (
+                    <div key={idx} className="text-center">
+                      <div className="bg-white/90 rounded-lg p-2 mb-1">
+                        <span className="text-2xl md:text-3xl font-black text-primary">
+                          {String(item.value).padStart(2, "0")}
+                        </span>
+                      </div>
+                      <span className="text-xs text-white font-medium uppercase">
+                        {item.label}
                       </span>
                     </div>
-                    <span className="text-xs md:text-sm text-foreground font-bold uppercase tracking-wide">
-                      {item.label}
-                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="p-6">
+                <span className="inline-block bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full mb-3">
+                  {titanProduct.availability}
+                </span>
+                
+                <h3 className="font-bold text-2xl mb-4 group-hover:text-primary transition-colors">
+                  {titanProduct.name}
+                </h3>
+
+                <div className="flex items-end justify-between mb-6">
+                  <div>
+                    {titanProduct.oldPrice && (
+                      <p className="text-base text-muted-foreground line-through">
+                        {titanProduct.oldPrice}
+                      </p>
+                    )}
+                    <p className="text-3xl md:text-4xl font-bold text-foreground">
+                      {titanProduct.price}
+                    </p>
                   </div>
-                ))}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    className="hover:bg-primary hover:text-primary-foreground transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsProductModalOpen(true);
+                    }}
+                  >
+                    Подробнее
+                  </Button>
+                  <Button 
+                    variant="default"
+                    size="lg"
+                    className="bg-accent hover:bg-accent-hover transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.success("Наш менеджер свяжется с вами!");
+                    }}
+                  >
+                    Узнать цену
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Right Section: Contact Form */}
-          <div className="lg:col-span-1 space-y-4">
-            {/* Discount Offer Banner */}
-            <button 
-              onClick={() => setIsProductModalOpen(true)}
-              className="w-full bg-accent text-accent-foreground px-4 py-2 md:px-6 md:py-3 rounded-lg shadow-lg hover:scale-105 transition-all cursor-pointer animate-glow-pulse"
-            >
-              <p className="text-lg md:text-xl lg:text-2xl font-bold">Прицеп Титан 2013-05</p>
-              <p className="text-base md:text-lg">со СКИДКОЙ 10%</p>
-            </button>
-
-            <div className="relative bg-card/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-xl border-2 border-primary/30 animate-fade-in">
-              {/* Glowing border effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 to-accent/20 blur-xl -z-10"></div>
-              <h3 className="text-lg md:text-xl font-bold mb-4 text-center">Отправить заявку</h3>
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 bg-card/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl border-2 border-primary/30 animate-fade-in">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 blur-xl -z-10"></div>
               
-              <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
+              <h3 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Отправить заявку
+              </h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <Label htmlFor="hero-name" className="text-sm">Имя</Label>
+                  <Label htmlFor="hero-name" className="text-sm font-semibold">Имя</Label>
                   <Input
                     id="hero-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ваше имя"
-                    className="mt-1"
+                    className="mt-2 h-12"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="hero-phone" className="text-sm">Телефон</Label>
+                  <Label htmlFor="hero-phone" className="text-sm font-semibold">Телефон</Label>
                   <Input
                     id="hero-phone"
                     value={phone}
                     onChange={handlePhoneChange}
                     placeholder="+7 (___) ___-__-__"
-                    className="mt-1"
+                    className="mt-2 h-12"
                   />
                 </div>
                 
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 pt-2">
                   <Checkbox
                     id="hero-agree"
                     checked={agreed}
                     onCheckedChange={(checked) => setAgreed(checked as boolean)}
+                    className="mt-1"
                   />
                   <label htmlFor="hero-agree" className="text-xs text-muted-foreground leading-tight cursor-pointer">
                     Я согласен с политикой конфиденциальности
@@ -212,7 +431,7 @@ export const HeroSection = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-accent hover:bg-accent-hover transition-all shadow-md"
+                  className="w-full h-12 bg-accent hover:bg-accent-hover transition-all shadow-lg text-base font-semibold"
                 >
                   Отправить
                 </Button>
