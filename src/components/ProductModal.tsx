@@ -108,7 +108,7 @@ export const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) =>
               </TabsList>
               
               <TabsContent value="description" className="space-y-4 mt-6">
-                <div className="prose prose-sm max-w-none">
+                <div className="max-w-none">
                   <p className="text-muted-foreground leading-relaxed">
                     "Титан 2ос 3519" - лучше всех справляется с большими нагрузками и идеально 
                     подходит для перевозки тяжёлых грузов: перевозка спец техники, грузоперевозки, 
