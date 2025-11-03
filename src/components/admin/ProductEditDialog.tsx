@@ -10,13 +10,93 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Trash2, Plus, Upload, X } from 'lucide-react';
+import { Trash2, Plus, Upload, X, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ProductEditDialogProps {
   open: boolean;
   onClose: () => void;
   product: any | null;
 }
+
+interface SortableSpecificationItemProps {
+  id: string;
+  spec: { spec_name: string; spec_value: string; display_order: number };
+  index: number;
+  onUpdate: (index: number, field: string, value: string | number) => void;
+  onRemove: (index: number) => void;
+}
+
+const SortableSpecificationItem = ({ id, spec, index, onUpdate, onRemove }: SortableSpecificationItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex gap-2 items-start">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="cursor-grab active:cursor-grabbing mt-2 px-2"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </Button>
+      <Input
+        placeholder="Порядок"
+        type="number"
+        value={spec.display_order}
+        onChange={(e) => onUpdate(index, 'display_order', parseInt(e.target.value))}
+        className="w-20"
+      />
+      <Input
+        placeholder="Название"
+        value={spec.spec_name}
+        onChange={(e) => onUpdate(index, 'spec_name', e.target.value)}
+      />
+      <Input
+        placeholder="Значение"
+        value={spec.spec_value}
+        onChange={(e) => onUpdate(index, 'spec_value', e.target.value)}
+      />
+      <Button
+        type="button"
+        variant="destructive"
+        size="sm"
+        onClick={() => onRemove(index)}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
 
 export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogProps) => {
   const queryClient = useQueryClient();
@@ -232,7 +312,12 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         await supabase.from('specifications').delete().eq('product_id', product.id);
         if (specifications.length > 0) {
           await supabase.from('specifications').insert(
-            specifications.map(spec => ({ ...spec, product_id: product.id }))
+            specifications.map(spec => ({
+              product_id: product.id,
+              spec_name: spec.spec_name,
+              spec_value: spec.spec_value,
+              display_order: spec.display_order
+            }))
           );
         }
 
@@ -340,6 +425,30 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
 
   const removeSpecification = (index: number) => {
     setSpecifications(specifications.filter((_, i) => i !== index));
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setSpecifications((items) => {
+        const oldIndex = items.findIndex((_, idx) => `spec-${idx}` === active.id);
+        const newIndex = items.findIndex((_, idx) => `spec-${idx}` === over.id);
+
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        return newItems.map((item, idx) => ({
+          ...item,
+          display_order: idx
+        }));
+      });
+    }
   };
 
   const addProductTent = (tentId: string) => {
@@ -736,30 +845,27 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                   Добавить
                 </Button>
               </div>
-              {specifications.map((spec, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <Input
-                    placeholder="Название"
-                    value={spec.spec_name}
-                    onChange={(e) => updateSpecification(idx, 'spec_name', e.target.value)}
-                  />
-                  <Input
-                    placeholder="Значение"
-                    value={spec.spec_value}
-                    onChange={(e) => updateSpecification(idx, 'spec_value', e.target.value)}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Порядок"
-                    className="w-24"
-                    value={spec.display_order}
-                    onChange={(e) => updateSpecification(idx, 'display_order', parseInt(e.target.value))}
-                  />
-                  <Button type="button" variant="ghost" size="sm" onClick={() => removeSpecification(idx)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={specifications.map((_, idx) => `spec-${idx}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {specifications.map((spec, idx) => (
+                    <SortableSpecificationItem
+                      key={`spec-${idx}`}
+                      id={`spec-${idx}`}
+                      spec={spec}
+                      index={idx}
+                      onUpdate={updateSpecification}
+                      onRemove={removeSpecification}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </div>
           </TabsContent>
         </Tabs>
