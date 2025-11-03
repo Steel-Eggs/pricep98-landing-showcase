@@ -131,6 +131,12 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     image_url?: string;
   }>>([]);
 
+  const [productAccessories, setProductAccessories] = useState<Array<{
+    accessory_id: string;
+    price: number;
+    is_available: boolean;
+  }>>([]);
+
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
@@ -144,6 +150,15 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     queryKey: ['tents'],
     queryFn: async () => {
       const { data, error } = await supabase.from('tents').select('*').order('default_price');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: accessories } = useQuery({
+    queryKey: ['accessories'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('accessories').select('*').order('display_order');
       if (error) throw error;
       return data;
     },
@@ -170,6 +185,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       setImagePreview(product.base_image_url || null);
       loadSpecifications(product.id);
       loadProductTents(product.id);
+      loadProductAccessories(product.id);
     } else {
       resetForm();
     }
@@ -204,6 +220,21 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     }
   };
 
+  const loadProductAccessories = async (productId: string) => {
+    const { data, error } = await supabase
+      .from('product_accessories')
+      .select('*')
+      .eq('product_id', productId);
+    
+    if (!error && data) {
+      setProductAccessories(data.map(pa => ({
+        accessory_id: pa.accessory_id,
+        price: pa.price,
+        is_available: pa.is_available,
+      })));
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -224,6 +255,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     setImageFile(null);
     setImagePreview(null);
     setProductTents([]);
+    setProductAccessories([]);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -336,6 +368,19 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             image_url: tentImageUrl || null,
           });
         }
+
+        // Update product_accessories
+        await supabase.from('product_accessories').delete().eq('product_id', product.id);
+        if (productAccessories.length > 0) {
+          await supabase.from('product_accessories').insert(
+            productAccessories.map(pa => ({
+              product_id: product.id,
+              accessory_id: pa.accessory_id,
+              price: pa.price,
+              is_available: pa.is_available,
+            }))
+          );
+        }
       } else {
         const { data: newProduct, error } = await supabase
           .from('products')
@@ -365,6 +410,18 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
               image_url: tentImageUrl || null,
             });
           }
+        }
+
+        // Insert product_accessories for new product
+        if (productAccessories.length > 0 && newProduct) {
+          await supabase.from('product_accessories').insert(
+            productAccessories.map(pa => ({
+              product_id: newProduct.id,
+              accessory_id: pa.accessory_id,
+              price: pa.price,
+              is_available: pa.is_available,
+            }))
+          );
         }
       }
     },
@@ -519,6 +576,33 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     ));
   };
 
+  const addProductAccessory = (accessoryId: string) => {
+    const accessory = accessories?.find(a => a.id === accessoryId);
+    if (!accessory) return;
+    
+    const exists = productAccessories.some(pa => pa.accessory_id === accessoryId);
+    if (exists) {
+      toast.error('Это комплектующее уже добавлено');
+      return;
+    }
+
+    setProductAccessories([...productAccessories, {
+      accessory_id: accessoryId,
+      price: accessory.default_price,
+      is_available: true,
+    }]);
+  };
+
+  const removeProductAccessory = (accessoryId: string) => {
+    setProductAccessories(productAccessories.filter(pa => pa.accessory_id !== accessoryId));
+  };
+
+  const updateProductAccessory = (accessoryId: string, field: string, value: any) => {
+    setProductAccessories(productAccessories.map(pa => 
+      pa.accessory_id === accessoryId ? { ...pa, [field]: value } : pa
+    ));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -527,10 +611,11 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Основное</TabsTrigger>
             <TabsTrigger value="config">Конфигурация</TabsTrigger>
             <TabsTrigger value="tents">Тенты</TabsTrigger>
+            <TabsTrigger value="accessories">Комплектующие</TabsTrigger>
             <TabsTrigger value="description">Описание</TabsTrigger>
             <TabsTrigger value="specs">Характеристики</TabsTrigger>
           </TabsList>
@@ -796,6 +881,62 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                           />
                         </div>
                       )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="accessories" className="space-y-4">
+            <div className="space-y-2">
+              <Label>Добавить комплектующее</Label>
+              <Select onValueChange={addProductAccessory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите комплектующее" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accessories?.filter(a => !productAccessories.some(pa => pa.accessory_id === a.id)).map((accessory) => (
+                    <SelectItem key={accessory.id} value={accessory.id}>
+                      {accessory.name} ({accessory.default_price} ₽)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              {productAccessories.map((pa) => {
+                const accessory = accessories?.find(a => a.id === pa.accessory_id);
+                return (
+                  <div key={pa.accessory_id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-semibold">{accessory?.name}</h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeProductAccessory(pa.accessory_id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Цена (₽)</Label>
+                      <Input
+                        type="number"
+                        value={pa.price}
+                        onChange={(e) => updateProductAccessory(pa.accessory_id, 'price', parseFloat(e.target.value))}
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={pa.is_available}
+                        onCheckedChange={(checked) => updateProductAccessory(pa.accessory_id, 'is_available', checked)}
+                      />
+                      <Label>Доступно</Label>
                     </div>
                   </div>
                 );
