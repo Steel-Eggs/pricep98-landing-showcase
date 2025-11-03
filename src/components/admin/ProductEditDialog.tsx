@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Upload, X } from 'lucide-react';
 
 interface ProductEditDialogProps {
   open: boolean;
@@ -40,6 +40,8 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
   const [newFeature, setNewFeature] = useState('');
   const [newWheelOption, setNewWheelOption] = useState('');
   const [newHubOption, setNewHubOption] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -68,6 +70,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         features: product.features || [],
       });
       
+      setImagePreview(product.base_image_url || null);
       loadSpecifications(product.id);
     } else {
       resetForm();
@@ -103,17 +106,69 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       features: [],
     });
     setSpecifications([]);
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Пожалуйста, выберите изображение');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Размер файла не должен превышать 5 МБ');
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData({ ...formData, base_image_url: '' });
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('trailer-images')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('trailer-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
   };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Загрузить изображение, если выбрано
+      let imageUrl = formData.base_image_url;
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
+
       // Очистить данные перед отправкой
       const cleanedData = {
         ...formData,
+        base_image_url: imageUrl?.trim() || null,
         // Преобразовать пустые строки в null для timestamp полей
         hero_timer_end: formData.hero_timer_end?.trim() ? formData.hero_timer_end : null,
         // Преобразовать пустые строки в null для текстовых полей
-        base_image_url: formData.base_image_url?.trim() || null,
         description: formData.description?.trim() || null,
         discount_label: formData.discount_label?.trim() || null,
         // Преобразовать 0 в null для опциональных числовых полей
@@ -244,8 +299,44 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             </div>
 
             <div className="space-y-2">
-              <Label>URL базового изображения</Label>
-              <Input value={formData.base_image_url} onChange={(e) => setFormData({ ...formData, base_image_url: e.target.value })} />
+              <Label>Изображение товара</Label>
+              {imagePreview ? (
+                <div className="relative">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="w-full h-48 object-contain rounded-lg border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={removeImage}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Нажмите для выбора изображения
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      PNG, JPG, WEBP до 5 МБ
+                    </div>
+                  </Label>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
