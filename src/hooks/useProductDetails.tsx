@@ -19,6 +19,22 @@ export const useProductDetails = (productId: string) => {
   });
 };
 
+export const useHeroProduct = () => {
+  return useQuery({
+    queryKey: ["hero-product"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("show_in_hero", true)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as Product | null;
+    },
+  });
+};
+
 export const useProductSpecifications = (productId: string) => {
   return useQuery({
     queryKey: ["product-specifications", productId],

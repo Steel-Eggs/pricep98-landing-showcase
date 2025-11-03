@@ -211,6 +211,16 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         old_price: formData.old_price || null,
       };
 
+      // Если товар помечен как hero, сбросить этот флаг у всех других товаров
+      if (cleanedData.show_in_hero) {
+        const { error: resetError } = await supabase
+          .from('products')
+          .update({ show_in_hero: false })
+          .neq('id', product?.id || '00000000-0000-0000-0000-000000000000');
+        
+        if (resetError) throw resetError;
+      }
+
       if (product) {
         const { error } = await supabase
           .from('products')

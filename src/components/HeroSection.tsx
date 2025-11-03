@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
-import { useProductDetails } from "@/hooks/useProductDetails";
+import { useHeroProduct } from "@/hooks/useProductDetails";
 
 declare global {
   interface Window {
@@ -29,37 +29,37 @@ export const HeroSection = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const titanProductId = "5cd020b6-8fca-43fe-a749-39a3a5ecab44";
-  const { data: titanProduct, isLoading } = useProductDetails(titanProductId);
+  const { data: heroProduct, isLoading } = useHeroProduct();
 
-  // Timer countdown
+  // Timer countdown based on hero_timer_end
   useEffect(() => {
+    if (!heroProduct?.hero_timer_end) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+    
+    const targetTime = new Date(heroProduct.hero_timer_end).getTime();
+    
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        let { days, hours, minutes, seconds } = prev;
-        
-        if (seconds > 0) {
-          seconds--;
-        } else if (minutes > 0) {
-          minutes--;
-          seconds = 59;
-        } else if (hours > 0) {
-          hours--;
-          minutes = 59;
-          seconds = 59;
-        } else if (days > 0) {
-          days--;
-          hours = 23;
-          minutes = 59;
-          seconds = 59;
-        }
-        
-        return { days, hours, minutes, seconds };
-      });
+      const now = new Date().getTime();
+      const difference = targetTime - now;
+      
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        clearInterval(timer);
+        return;
+      }
+      
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+      
+      setTimeLeft({ days, hours, minutes, seconds });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [heroProduct?.hero_timer_end]);
 
   // Three.js 3D Background
   useEffect(() => {
@@ -277,7 +277,7 @@ export const HeroSection = () => {
         <div className="grid lg:grid-cols-3 gap-4 md:gap-5 items-start">
           {/* Left Section: Product Card */}
           <div className="lg:col-span-2">
-            {isLoading || !titanProduct ? (
+            {isLoading || !heroProduct ? (
               <div className="relative bg-card rounded-xl overflow-hidden shadow-2xl border-2 border-primary/40 animate-pulse">
                 <div className="aspect-[16/8] bg-muted"></div>
                 <div className="bg-gradient-to-r from-primary via-accent to-primary p-6">
@@ -291,7 +291,7 @@ export const HeroSection = () => {
             >
               {/* Discount Badge - Right Side */}
               <div className="absolute top-4 right-4 bg-accent text-accent-foreground px-6 py-3 rounded-lg text-base font-bold z-20 shadow-lg animate-pulse">
-                {titanProduct.discount_label}
+                {heroProduct.discount_label}
               </div>
 
               {/* Product Image with Overlay Info */}
@@ -301,7 +301,7 @@ export const HeroSection = () => {
                 )}
                 <img
                   src={trailerImage}
-                  alt={titanProduct.name}
+                  alt={heroProduct.name}
                   className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
                     imageLoaded ? "opacity-100" : "opacity-0"
                   }`}
@@ -312,22 +312,22 @@ export const HeroSection = () => {
                 
                 {/* Availability Badge - Bottom Left */}
                 <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-sm text-primary text-sm font-medium px-4 py-2 rounded-full shadow-lg">
-                  {titanProduct.availability}
+                  {heroProduct.availability}
                 </div>
                 
                 {/* Product Name and Prices - Bottom Center */}
                 <div className="absolute bottom-16 left-6 right-6">
                   <h3 className="font-bold text-3xl md:text-4xl mb-2 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
-                    {titanProduct.name}
+                    {heroProduct.name}
                   </h3>
                   <div className="flex items-end gap-3 mb-3">
-                    {titanProduct.old_price && (
+                    {heroProduct.old_price && (
                       <p className="text-lg md:text-xl text-white/70 line-through drop-shadow-lg">
-                        от {titanProduct.old_price.toLocaleString('ru-RU')} ₽
+                        от {heroProduct.old_price.toLocaleString('ru-RU')} ₽
                       </p>
                     )}
                     <p className="text-4xl md:text-5xl font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">
-                      от {titanProduct.base_price.toLocaleString('ru-RU')} ₽
+                      от {heroProduct.base_price.toLocaleString('ru-RU')} ₽
                     </p>
                   </div>
                 </div>
@@ -433,9 +433,9 @@ export const HeroSection = () => {
       </div>
 
       {/* Product Modal */}
-      {titanProduct && (
+      {heroProduct && (
         <ProductModal 
-          product={titanProduct}
+          product={heroProduct}
           open={isProductModalOpen}
           onOpenChange={(open) => setIsProductModalOpen(open)}
         />

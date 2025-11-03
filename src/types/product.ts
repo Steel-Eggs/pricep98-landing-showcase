@@ -8,6 +8,8 @@ export interface Product {
   base_image_url?: string;
   description?: string;
   category_id: string;
+  show_in_hero?: boolean;
+  hero_timer_end?: string;
   wheel_options?: {
     default?: string;
     options?: string[];
