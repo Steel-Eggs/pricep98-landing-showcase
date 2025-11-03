@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
+import { useProductDetails } from "@/hooks/useProductDetails";
 
 declare global {
   interface Window {
@@ -28,16 +29,8 @@ export const HeroSection = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const titanProduct = {
-    id: "5cd020b6-8fca-43fe-a749-39a3a5ecab44",
-    name: "Титан 2513-03",
-    base_price: 155000,
-    old_price: 172000,
-    availability: "В наличии",
-    discount_label: "СКИДКА 10%",
-    category_id: "760c8ec0-e85a-4aff-b27b-328d0edbf3db",
-    base_image_url: "https://pricepcentr.ru/upload/dev2fun.imagecompress/webp/products/2513-A/2513-31-21-1000-A.webp"
-  };
+  const titanProductId = "5cd020b6-8fca-43fe-a749-39a3a5ecab44";
+  const { data: titanProduct, isLoading } = useProductDetails(titanProductId);
 
   // Timer countdown
   useEffect(() => {
@@ -284,9 +277,15 @@ export const HeroSection = () => {
         <div className="grid lg:grid-cols-3 gap-4 md:gap-5 items-start">
           {/* Left Section: Product Card */}
           <div className="lg:col-span-2">
-
-            {/* Product Card with Timer */}
-            <div 
+            {isLoading || !titanProduct ? (
+              <div className="relative bg-card rounded-xl overflow-hidden shadow-2xl border-2 border-primary/40 animate-pulse">
+                <div className="aspect-[16/8] bg-muted"></div>
+                <div className="bg-gradient-to-r from-primary via-accent to-primary p-6">
+                  <div className="h-20 bg-white/20 rounded"></div>
+                </div>
+              </div>
+            ) : (
+              <div
               className="relative bg-card rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 border-2 border-primary/40 cursor-pointer group animate-scale-in"
               onClick={() => setIsProductModalOpen(true)}
             >
@@ -374,6 +373,7 @@ export const HeroSection = () => {
                 </div>
               </div>
             </div>
+            )}
           </div>
 
           {/* Right Section: Contact Form */}
@@ -433,11 +433,13 @@ export const HeroSection = () => {
       </div>
 
       {/* Product Modal */}
-      <ProductModal 
-        product={titanProduct}
-        open={isProductModalOpen}
-        onOpenChange={(open) => setIsProductModalOpen(open)}
-      />
+      {titanProduct && (
+        <ProductModal 
+          product={titanProduct}
+          open={isProductModalOpen}
+          onOpenChange={(open) => setIsProductModalOpen(open)}
+        />
+      )}
     </section>
   );
 };
