@@ -93,6 +93,13 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
         .filter(acc => selectedAccessories.has(acc.id))
         .map(acc => acc.name);
 
+      const accessoriesPrices = accessories
+        .filter(acc => selectedAccessories.has(acc.id))
+        .map(acc => ({
+          name: acc.name,
+          price: acc.default_price,
+        }));
+
       const { error } = await supabase.functions.invoke("send-order-notification", {
         body: {
           type: "order",
@@ -103,9 +110,15 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
             tent: selectedProductTent?.tent?.name,
             accessories: selectedAccessoryNames,
           },
+          basePrice: product.base_price,
+          oldPrice: product.old_price,
+          tentName: selectedProductTent?.tent?.name,
+          tentPrice: selectedProductTent?.price,
+          accessoriesPrices,
           totalPrice,
           name,
           phone,
+          isFromHero: false,
         },
       });
 

@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 import { useHeroProduct } from "@/hooks/useProductDetails";
+import { useProductTents } from "@/hooks/useTents";
 import { supabase } from "@/integrations/supabase/client";
 
 declare global {
@@ -31,6 +32,7 @@ export const HeroSection = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const { data: heroProduct, isLoading } = useHeroProduct();
+  const { data: productTents = [] } = useProductTents(heroProduct?.id || "");
 
   // Timer countdown based on hero_timer_end
   useEffect(() => {
@@ -272,14 +274,40 @@ export const HeroSection = () => {
       return;
     }
 
+    if (!heroProduct) {
+      toast.error("Товар не найден");
+      return;
+    }
+
     try {
+      // Find default tent
+      const defaultTent = productTents.find(pt => pt.is_default);
+      const defaultWheels = heroProduct.wheel_options?.default || "2 колеса R13";
+      const defaultHub = heroProduct.hub_options?.default || "Жигулевская ступица";
+      
+      // Calculate total price with default configuration
+      const tentPrice = defaultTent?.price || 0;
+      const totalPrice = heroProduct.base_price + tentPrice;
+
       const { error } = await supabase.functions.invoke("send-order-notification", {
         body: {
-          type: "promo",
+          type: "order",
+          productName: heroProduct.name,
+          configuration: {
+            wheels: defaultWheels,
+            hub: defaultHub,
+            tent: defaultTent?.tent?.name,
+            accessories: [],
+          },
+          basePrice: heroProduct.base_price,
+          oldPrice: heroProduct.old_price,
+          tentName: defaultTent?.tent?.name,
+          tentPrice: tentPrice,
+          accessoriesPrices: [],
+          totalPrice,
           name,
           phone,
-          productName: heroProduct?.name,
-          productPrice: heroProduct?.base_price,
+          isFromHero: true,
         },
       });
 
@@ -290,7 +318,7 @@ export const HeroSection = () => {
       setPhone("+7 (");
       setAgreed(false);
     } catch (error) {
-      console.error("Error sending promo request:", error);
+      console.error("Error sending order request:", error);
       toast.error("Произошла ошибка. Попробуйте позже");
     }
   };
