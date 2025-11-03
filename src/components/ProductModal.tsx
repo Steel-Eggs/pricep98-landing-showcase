@@ -9,6 +9,8 @@ import { useAccessories } from "@/hooks/useAccessories";
 import { useProductSpecifications } from "@/hooks/useProductDetails";
 import { ProductImagePlaceholder } from "./ProductImagePlaceholder";
 import type { Product } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProductModalProps {
   product: Product;
@@ -79,6 +81,42 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleOrder = () => {
+    setShowCallbackModal(true);
+  };
+
+  const handleCallbackSubmit = async (name: string, phone: string) => {
+    try {
+      const selectedAccessoryNames = accessories
+        .filter(acc => selectedAccessories.has(acc.id))
+        .map(acc => acc.name);
+
+      const { error } = await supabase.functions.invoke("send-order-notification", {
+        body: {
+          type: "order",
+          productName: product.name,
+          configuration: {
+            wheels: selectedWheels,
+            hub: selectedHub,
+            tent: selectedProductTent?.tent?.name,
+            accessories: selectedAccessoryNames,
+          },
+          totalPrice,
+          name,
+          phone,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Спасибо за заказ! Мы скоро свяжемся с вами");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error sending order:", error);
+      toast.error("Произошла ошибка. Попробуйте позже");
+    }
   };
 
   return (
@@ -296,7 +334,7 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
               <Button
                 size="lg"
                 className="w-full text-lg py-6 hover:shadow-2xl transition-all hover:-translate-y-1"
-                onClick={() => setShowCallbackModal(true)}
+                onClick={handleOrder}
               >
                 ЗАКАЗАТЬ
               </Button>

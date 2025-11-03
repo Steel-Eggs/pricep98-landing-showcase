@@ -8,7 +8,8 @@ import { CategoriesManager } from '@/components/admin/CategoriesManager';
 import { ProductsManager } from '@/components/admin/ProductsManager';
 import { AccessoriesManager } from '@/components/admin/AccessoriesManager';
 import { TentsManager } from '@/components/admin/TentsManager';
-import { LogOut, Package, Tags, Wrench, Tent, Home } from 'lucide-react';
+import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
+import { LogOut, Package, Tags, Wrench, Tent, Home, Settings } from 'lucide-react';
 import logoMono from '@/assets/logo-mono.png';
 import { toast } from 'sonner';
 
@@ -48,7 +49,7 @@ const AdminPage = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tags className="w-4 h-4" />
               Категории
@@ -64,6 +65,10 @@ const AdminPage = () => {
             <TabsTrigger value="accessories" className="flex items-center gap-2">
               <Wrench className="w-4 h-4" />
               Комплектующие
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Настройки сайта
             </TabsTrigger>
           </TabsList>
 
@@ -81,6 +86,10 @@ const AdminPage = () => {
 
           <TabsContent value="accessories">
             <AccessoriesManager />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <SiteSettingsManager />
           </TabsContent>
         </Tabs>
       </main>

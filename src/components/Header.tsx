@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import { CallbackModal } from "./CallbackModal";
 import { useCategories } from "@/hooks/useCategories";
+import { useSiteSetting } from "@/hooks/useSiteSettings";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCallbackOpen, setIsCallbackOpen] = useState(false);
   const { data: categories } = useCategories();
+  const addressCity = useSiteSetting("address_city");
+  const phone = useSiteSetting("phone");
 
   const menuItems = [
     ...(categories?.map(cat => ({
@@ -32,15 +35,15 @@ export const Header = () => {
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-2 text-sm">
               <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-muted-foreground">Санкт-Петербург</span>
+              <span className="text-muted-foreground">{addressCity || "Санкт-Петербург"}</span>
             </div>
             
             <a 
-              href="tel:+79219103850" 
+              href={`tel:${phone.replace(/\D/g, '')}`}
               className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
             >
               <Phone className="w-4 h-4" />
-              +7 (921) 910-38-50
+              {phone || "+7 (921) 910-38-50"}
             </a>
             
             <Button 

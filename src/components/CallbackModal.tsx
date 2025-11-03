@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CallbackModalProps {
   open: boolean;
@@ -37,7 +38,7 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
     setPhone(formatted);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !phone || !agreed) {
@@ -45,11 +46,26 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
       return;
     }
 
-    toast.success("Спасибо! Мы скоро свяжемся с вами");
-    setName("");
-    setPhone("");
-    setAgreed(false);
-    onOpenChange(false);
+    try {
+      const { error } = await supabase.functions.invoke("send-order-notification", {
+        body: {
+          type: "callback",
+          name,
+          phone,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Спасибо! Мы скоро свяжемся с вами");
+      setName("");
+      setPhone("");
+      setAgreed(false);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error sending callback request:", error);
+      toast.error("Произошла ошибка. Попробуйте позже");
+    }
   };
 
   return (

@@ -4,9 +4,18 @@ import { Button } from "@/components/ui/button";
 import logoMono from "@/assets/logo-mono.png";
 import developerLogo from "@/assets/developer-logo.png";
 import { useCategories } from "@/hooks/useCategories";
+import { useSiteSetting } from "@/hooks/useSiteSettings";
+import { PrivacyPolicyDialog } from "./PrivacyPolicyDialog";
+import { TermsOfServiceDialog } from "./TermsOfServiceDialog";
+import { useState } from "react";
 
 export const Footer = () => {
   const { data: categories } = useCategories();
+  const phone = useSiteSetting("phone");
+  const youtubeUrl = useSiteSetting("youtube_url");
+  const vkUrl = useSiteSetting("vk_url");
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const menuItems = [
     ...(categories?.map(cat => ({
@@ -33,7 +42,7 @@ export const Footer = () => {
             </div>
             <div className="flex gap-3">
               <a
-                href="https://www.youtube.com"
+                href={youtubeUrl || "https://www.youtube.com"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-background/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors"
@@ -41,7 +50,7 @@ export const Footer = () => {
                 <span className="text-sm font-bold">YT</span>
               </a>
               <a
-                href="https://vk.com"
+                href={vkUrl || "https://vk.com"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-background/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors"
@@ -72,8 +81,8 @@ export const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 mt-1 flex-shrink-0" />
-                <a href="tel:+79219103850" className="text-background/70 hover:text-background transition-colors">
-                  +7 (921) 910-38-50
+                <a href={`tel:${phone.replace(/\D/g, '')}`} className="text-background/70 hover:text-background transition-colors">
+                  {phone || "+7 (921) 910-38-50"}
                 </a>
               </li>
               <li className="flex items-start gap-2">
@@ -96,17 +105,18 @@ export const Footer = () => {
             <Button
               className="w-full bg-accent hover:bg-accent-hover mb-4"
               size="lg"
+              onClick={() => window.location.href = `tel:${phone.replace(/\D/g, '')}`}
             >
               <Phone className="w-4 h-4 mr-2" />
               Позвонить
             </Button>
             <div className="text-xs text-background/70 space-y-2">
-              <a href="#" className="block hover:text-background transition-colors">
+              <button onClick={() => setShowPrivacy(true)} className="block hover:text-background transition-colors text-left">
                 Политика конфиденциальности
-              </a>
-              <a href="#" className="block hover:text-background transition-colors">
+              </button>
+              <button onClick={() => setShowTerms(true)} className="block hover:text-background transition-colors text-left">
                 Пользовательское соглашение
-              </a>
+              </button>
               <a href="/auth" className="block hover:text-background transition-colors">
                 Админ-панель
               </a>
@@ -133,6 +143,9 @@ export const Footer = () => {
           </div>
         </div>
       </div>
+
+      <PrivacyPolicyDialog open={showPrivacy} onOpenChange={setShowPrivacy} />
+      <TermsOfServiceDialog open={showTerms} onOpenChange={setShowTerms} />
     </footer>
   );
 };
