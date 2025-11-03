@@ -15,6 +15,14 @@ interface CallbackRequest {
   phone: string;
 }
 
+interface PromoRequest {
+  type: "promo";
+  name: string;
+  phone: string;
+  productName?: string;
+  productPrice?: number;
+}
+
 interface OrderRequest {
   type: "order";
   productName: string;
@@ -53,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const recipientEmail = settings.value;
-    const requestData: CallbackRequest | OrderRequest = await req.json();
+    const requestData: CallbackRequest | PromoRequest | OrderRequest = await req.json();
 
     let emailSubject = "";
     let emailHtml = "";
@@ -64,6 +72,20 @@ const handler = async (req: Request): Promise<Response> => {
         <h1>Новый запрос на обратный звонок</h1>
         <p><strong>Имя:</strong> ${requestData.name}</p>
         <p><strong>Телефон:</strong> ${requestData.phone}</p>
+        <p>Пожалуйста, свяжитесь с клиентом как можно скорее.</p>
+      `;
+    } else if (requestData.type === "promo") {
+      emailSubject = "Новая заявка по акции";
+      emailHtml = `
+        <h1>Новая заявка по акции</h1>
+        <p><strong>Имя:</strong> ${requestData.name}</p>
+        <p><strong>Телефон:</strong> ${requestData.phone}</p>
+        ${requestData.productName ? `<p><strong>Товар:</strong> ${requestData.productName}</p>` : ''}
+        ${requestData.productPrice ? `<p><strong>Цена:</strong> ${new Intl.NumberFormat('ru-RU', {
+          style: 'currency',
+          currency: 'RUB',
+          minimumFractionDigits: 0,
+        }).format(requestData.productPrice)}</p>` : ''}
         <p>Пожалуйста, свяжитесь с клиентом как можно скорее.</p>
       `;
     } else if (requestData.type === "order") {

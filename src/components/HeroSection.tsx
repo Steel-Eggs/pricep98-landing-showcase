@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 import { useHeroProduct } from "@/hooks/useProductDetails";
+import { supabase } from "@/integrations/supabase/client";
 
 declare global {
   interface Window {
@@ -23,7 +24,7 @@ export const HeroSection = () => {
     seconds: 0,
   });
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+7 (");
   const [agreed, setAgreed] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -221,34 +222,77 @@ export const HeroSection = () => {
   }, []);
 
   const formatPhone = (value: string) => {
+    // Удаляем все нечисловые символы
     const cleaned = value.replace(/\D/g, "");
-    const match = cleaned.match(/^(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
+    
+    // Убираем префикс "7" если он есть в начале (это код страны, не часть номера)
+    const phoneNumber = cleaned.startsWith('7') ? cleaned.slice(1) : cleaned;
+    
+    // Ограничиваем до 10 цифр (номер без кода страны)
+    const limited = phoneNumber.substring(0, 10);
+    
+    // Форматируем
+    const match = limited.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
     
     if (match) {
       let formatted = "+7";
-      if (match[2]) formatted += ` (${match[2]}`;
-      if (match[3]) formatted += `) ${match[3]}`;
+      if (match[1]) {
+        formatted += ` (${match[1]}`;
+        if (match[1].length === 3) formatted += ")";
+      } else {
+        formatted += " (";
+      }
+      if (match[2]) formatted += ` ${match[2]}`;
+      if (match[3]) formatted += `-${match[3]}`;
       if (match[4]) formatted += `-${match[4]}`;
-      if (match[5]) formatted += `-${match[5]}`;
       return formatted;
     }
-    return value;
+    
+    return "+7 (";
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(formatPhone(e.target.value));
+    const input = e.target.value;
+    
+    // Если пользователь пытается удалить "+7 (", не даём это сделать
+    if (input.length < 4) {
+      setPhone("+7 (");
+      return;
+    }
+    
+    const formatted = formatPhone(input);
+    setPhone(formatted);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!name || !phone || !agreed) {
       toast.error("Пожалуйста, заполните все поля");
       return;
     }
-    toast.success("Спасибо! Мы скоро свяжемся с вами");
-    setName("");
-    setPhone("");
-    setAgreed(false);
+
+    try {
+      const { error } = await supabase.functions.invoke("send-order-notification", {
+        body: {
+          type: "promo",
+          name,
+          phone,
+          productName: heroProduct?.name,
+          productPrice: heroProduct?.base_price,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Спасибо! Мы скоро свяжемся с вами");
+      setName("");
+      setPhone("+7 (");
+      setAgreed(false);
+    } catch (error) {
+      console.error("Error sending promo request:", error);
+      toast.error("Произошла ошибка. Попробуйте позже");
+    }
   };
 
   return (
