@@ -18,18 +18,18 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
   const [agreed, setAgreed] = useState(false);
 
   const formatPhone = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    const match = cleaned.match(/^(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
+    const cleaned = value.replace(/\D/g, "").substring(0, 10); // Ограничение на 10 цифр
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
     
     if (match) {
       let formatted = "+7";
-      if (match[2]) formatted += ` (${match[2]}`;
-      if (match[3]) formatted += `) ${match[3]}`;
+      if (match[1]) formatted += ` (${match[1]}`;
+      if (match[2]) formatted += `) ${match[2]}`;
+      if (match[3]) formatted += `-${match[3]}`;
       if (match[4]) formatted += `-${match[4]}`;
-      if (match[5]) formatted += `-${match[5]}`;
       return formatted;
     }
-    return value;
+    return "+7";
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
