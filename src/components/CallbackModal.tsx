@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,6 +19,9 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
 
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, "").substring(0, 10); // Ограничение на 10 цифр
+    
+    if (!cleaned) return ""; // Если нет цифр, возвращаем пустую строку
+    
     const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
     
     if (match) {
@@ -29,7 +32,7 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
       if (match[4]) formatted += `-${match[4]}`;
       return formatted;
     }
-    return "+7";
+    return "";
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +73,7 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md animate-scale-in">
-        <h2 className="text-xl font-bold mb-4">Обратный звонок</h2>
+        <DialogTitle className="text-xl font-bold">Обратный звонок</DialogTitle>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
