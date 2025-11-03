@@ -107,10 +107,23 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Очистить данные перед отправкой
+      const cleanedData = {
+        ...formData,
+        // Преобразовать пустые строки в null для timestamp полей
+        hero_timer_end: formData.hero_timer_end?.trim() ? formData.hero_timer_end : null,
+        // Преобразовать пустые строки в null для текстовых полей
+        base_image_url: formData.base_image_url?.trim() || null,
+        description: formData.description?.trim() || null,
+        discount_label: formData.discount_label?.trim() || null,
+        // Преобразовать 0 в null для опциональных числовых полей
+        old_price: formData.old_price || null,
+      };
+
       if (product) {
         const { error } = await supabase
           .from('products')
-          .update(formData)
+          .update(cleanedData)
           .eq('id', product.id);
         if (error) throw error;
 
@@ -124,7 +137,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       } else {
         const { data: newProduct, error } = await supabase
           .from('products')
-          .insert(formData)
+          .insert(cleanedData)
           .select()
           .single();
         if (error) throw error;
