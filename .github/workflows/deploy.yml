@@ -38,4 +38,4 @@ jobs:
           local_path: "./dist/*"
           remote_path: ${{ secrets.FTP_PATH }}
           # по желанию: очистить каталог перед заливкой
-          sftpArgs: '-o StrictHostKeyChecking=no'
+          # sftpArgs: '-o StrictHostKeyChecking=no'
