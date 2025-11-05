@@ -11,7 +11,8 @@ export const useProducts = (categorySlug?: string) => {
         .select(`
           *,
           category:categories(id, name, slug)
-        `);
+        `)
+        .order("display_order", { ascending: true });
 
       if (categorySlug) {
         query = query.eq("categories.slug", categorySlug);
@@ -40,7 +41,8 @@ export const useProductsByCategory = (categorySlug: string) => {
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .eq("category_id", category.id);
+        .eq("category_id", category.id)
+        .order("display_order", { ascending: true });
 
       if (error) throw error;
       return data as Product[];

@@ -19,6 +19,7 @@ export interface Product {
     options?: string[];
   };
   features?: string[];
+  display_order?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -43,6 +44,7 @@ export interface Tent {
   name: string;
   slug: string;
   default_price: number;
+  display_order?: number;
   created_at?: string;
 }
 
