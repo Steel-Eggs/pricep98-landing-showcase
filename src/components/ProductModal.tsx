@@ -20,12 +20,8 @@ interface ProductModalProps {
 
 export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps) => {
   const [showCallbackModal, setShowCallbackModal] = useState(false);
-  const [selectedWheels, setSelectedWheels] = useState<string>(
-    product.wheel_options?.default || "2 колеса R13"
-  );
-  const [selectedHub, setSelectedHub] = useState<string>(
-    product.hub_options?.default || "Жигулевская ступица"
-  );
+  const [selectedWheels, setSelectedWheels] = useState<string>("");
+  const [selectedHub, setSelectedHub] = useState<string>("");
   const [selectedTentId, setSelectedTentId] = useState<string | null>(null);
   const [selectedAccessories, setSelectedAccessories] = useState<Set<string>>(new Set());
 
@@ -33,15 +29,27 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
   const { data: accessories = [], isLoading: accessoriesLoading } = useAccessories();
   const { data: specifications = [], isLoading: specificationsLoading } = useProductSpecifications(product.id);
 
-  // Set default tent on load
+  // Reset state when modal opens
   useEffect(() => {
-    if (productTents.length > 0 && !selectedTentId) {
+    if (open) {
+      setSelectedWheels(product.wheel_options?.default || "");
+      setSelectedHub(product.hub_options?.default || "");
+      setSelectedAccessories(new Set());
+    }
+  }, [open, product]);
+
+  // Set default tent when data loads
+  useEffect(() => {
+    if (open && productTents.length > 0) {
       const defaultTent = productTents.find(pt => pt.is_default);
       if (defaultTent) {
         setSelectedTentId(defaultTent.tent_id);
+      } else if (productTents[0]) {
+        // Fallback to first tent if no default
+        setSelectedTentId(productTents[0].tent_id);
       }
     }
-  }, [productTents, selectedTentId]);
+  }, [open, productTents]);
 
   const selectedProductTent = productTents.find(pt => pt.tent_id === selectedTentId);
   const currentImage = selectedProductTent?.image_url || product.base_image_url;
