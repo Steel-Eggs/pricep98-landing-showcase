@@ -347,7 +347,8 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
               {/* Order Button */}
               <Button
                 size="lg"
-                className="w-full text-lg py-6 hover:shadow-2xl transition-all hover:-translate-y-1"
+                variant="destructive"
+                className="w-full text-xl py-8 hover:shadow-2xl transition-all hover:-translate-y-1 font-bold"
                 onClick={handleOrder}
               >
                 ЗАКАЗАТЬ
