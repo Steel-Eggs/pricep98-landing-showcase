@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Trash2, Plus, Upload, X, GripVertical } from 'lucide-react';
 import ReactQuill from 'react-quill';
@@ -113,8 +114,8 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     description: '',
     show_in_hero: false,
     hero_timer_end: '',
-    wheel_options: { default: '2 колеса R13', options: ['2 колеса R13'] },
-    hub_options: { default: 'ВАЗ', options: ['ВАЗ'] },
+      wheel_options: { default: '', options: [] },
+      hub_options: { default: '', options: [] },
     features: [] as string[],
   });
 
@@ -179,8 +180,8 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         description: product.description || '',
         show_in_hero: product.show_in_hero || false,
         hero_timer_end: product.hero_timer_end || '',
-        wheel_options: product.wheel_options || { default: '2 колеса R13', options: ['2 колеса R13'] },
-        hub_options: product.hub_options || { default: 'ВАЗ', options: ['ВАЗ'] },
+        wheel_options: product.wheel_options || { default: '', options: [] },
+        hub_options: product.hub_options || { default: '', options: [] },
         features: product.features || [],
       });
       
@@ -249,8 +250,8 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       description: '',
       show_in_hero: false,
       hero_timer_end: '',
-      wheel_options: { default: '2 колеса R13', options: ['2 колеса R13'] },
-      hub_options: { default: 'ВАЗ', options: ['ВАЗ'] },
+      wheel_options: { default: '', options: [] },
+      hub_options: { default: '', options: [] },
       features: [],
     });
     setSpecifications([]);
@@ -444,6 +445,34 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
 
   const removeFeature = (index: number) => {
     setFormData({ ...formData, features: formData.features.filter((_, i) => i !== index) });
+  };
+
+  const removeWheelOption = (index: number) => {
+    const newOptions = formData.wheel_options.options.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      wheel_options: {
+        ...formData.wheel_options,
+        options: newOptions,
+        default: newOptions.includes(formData.wheel_options.default) 
+          ? formData.wheel_options.default 
+          : (newOptions[0] || '')
+      }
+    });
+  };
+
+  const removeHubOption = (index: number) => {
+    const newOptions = formData.hub_options.options.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      hub_options: {
+        ...formData.hub_options,
+        options: newOptions,
+        default: newOptions.includes(formData.hub_options.default) 
+          ? formData.hub_options.default 
+          : (newOptions[0] || '')
+      }
+    });
   };
 
   const addWheelOption = () => {
@@ -734,27 +763,54 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
           </TabsContent>
 
           <TabsContent value="config" className="space-y-4">
-            <div className="space-y-2">
-              <Label>Колёса (по умолчанию)</Label>
-              <Input
-                value={formData.wheel_options.default}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  wheel_options: { ...formData.wheel_options, default: e.target.value }
-                })}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Колёса (по умолчанию)</Label>
+                <RadioGroup
+                  value={formData.wheel_options.default}
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    wheel_options: { ...formData.wheel_options, default: value }
+                  })}
+                  className="space-y-2"
+                >
+                  {formData.wheel_options.options.map((option, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`wheel-${idx}`} />
+                      <Label htmlFor={`wheel-${idx}`} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {formData.wheel_options.options.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Добавьте хотя бы одну опцию колёс ниже
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Доступные опции колёс</Label>
                 {formData.wheel_options.options.map((option, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <Input value={option} disabled />
+                    <Input value={option} disabled className="flex-1" />
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => removeWheelOption(idx)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
                 <div className="flex gap-2">
                   <Input
                     value={newWheelOption}
                     onChange={(e) => setNewWheelOption(e.target.value)}
-                    placeholder="Новая опция"
+                    placeholder="Новая опция колёс"
+                    className="flex-1"
                   />
                   <Button type="button" onClick={addWheelOption}>
                     <Plus className="w-4 h-4" />
@@ -763,27 +819,54 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Ступица (по умолчанию)</Label>
-              <Input
-                value={formData.hub_options.default}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  hub_options: { ...formData.hub_options, default: e.target.value }
-                })}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Ступица (по умолчанию)</Label>
+                <RadioGroup
+                  value={formData.hub_options.default}
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    hub_options: { ...formData.hub_options, default: value }
+                  })}
+                  className="space-y-2"
+                >
+                  {formData.hub_options.options.map((option, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`hub-${idx}`} />
+                      <Label htmlFor={`hub-${idx}`} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {formData.hub_options.options.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Добавьте хотя бы одну опцию ступиц ниже
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Доступные опции ступиц</Label>
                 {formData.hub_options.options.map((option, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <Input value={option} disabled />
+                    <Input value={option} disabled className="flex-1" />
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => removeHubOption(idx)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
                 <div className="flex gap-2">
                   <Input
                     value={newHubOption}
                     onChange={(e) => setNewHubOption(e.target.value)}
-                    placeholder="Новая опция"
+                    placeholder="Новая опция ступиц"
+                    className="flex-1"
                   />
                   <Button type="button" onClick={addHubOption}>
                     <Plus className="w-4 h-4" />
