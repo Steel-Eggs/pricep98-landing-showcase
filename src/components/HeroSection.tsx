@@ -334,7 +334,7 @@ export const HeroSection = () => {
       <div className="container mx-auto px-4 pt-8 md:pt-16 lg:pt-16 pb-8 md:pb-16 lg:pb-12 relative z-10">
         {/* Title */}
         <div className="animate-fade-in mb-3">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground whitespace-nowrap">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
             <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
               Более 50 моделей{" "}
             </span>
