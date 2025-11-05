@@ -331,7 +331,7 @@ export const HeroSection = () => {
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-[1]"></div>
 
-      <div className="container mx-auto px-4 py-2 -mt-10 pb-8 md:pb-12 relative z-10">
+      <div className="container mx-auto px-4 pt-24 md:pt-28 lg:pt-32 pb-8 md:pb-12 relative z-10">
         {/* Title */}
         <div className="animate-fade-in mb-3">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground whitespace-nowrap">
