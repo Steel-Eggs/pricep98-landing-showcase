@@ -103,10 +103,22 @@ export const ProductsManager = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)')
+        .select(`
+          *,
+          categories(name),
+          product_tents!left(image_url, is_default)
+        `)
         .order('display_order', { ascending: true });
       if (error) throw error;
-      return data as Product[];
+      
+      // Map the default tent image to the product
+      return (data || []).map((product: any) => {
+        const defaultTent = product.product_tents?.find((pt: any) => pt.is_default === true);
+        return {
+          ...product,
+          base_image_url: defaultTent?.image_url || product.base_image_url,
+        };
+      }) as Product[];
     },
   });
 

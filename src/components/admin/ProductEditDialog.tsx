@@ -674,47 +674,6 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Изображение товара</Label>
-              {imagePreview ? (
-                <div className="relative">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="w-full h-48 object-contain rounded-lg border"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={removeImage}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <Label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Нажмите для выбора изображения
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      PNG, JPG, WEBP до 5 МБ
-                    </div>
-                  </Label>
-                  <Input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
-                </div>
-              )}
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Базовая цена (₽)</Label>
