@@ -243,14 +243,22 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
 
               {/* Price */}
               <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border-2 border-primary/20">
-                {product.old_price && (
-                  <p className="text-lg text-muted-foreground line-through">
-                    {formatPrice(product.old_price)}
+                {product.price_on_request ? (
+                  <p className="text-2xl font-bold text-primary text-center">
+                    Уточняйте у менеджера
                   </p>
+                ) : (
+                  <>
+                    {product.old_price && (
+                      <p className="text-lg text-muted-foreground line-through">
+                        {formatPrice(product.old_price)}
+                      </p>
+                    )}
+                    <p className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                      {formatPrice(totalPrice)}
+                    </p>
+                  </>
                 )}
-                <p className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {formatPrice(totalPrice)}
-                </p>
               </div>
 
               {/* Availability */}

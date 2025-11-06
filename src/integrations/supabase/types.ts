@@ -165,6 +165,7 @@ export type Database = {
           id: string
           name: string
           old_price: number | null
+          price_on_request: boolean | null
           show_in_hero: boolean | null
           updated_at: string | null
           wheel_options: Json | null
@@ -184,6 +185,7 @@ export type Database = {
           id?: string
           name: string
           old_price?: number | null
+          price_on_request?: boolean | null
           show_in_hero?: boolean | null
           updated_at?: string | null
           wheel_options?: Json | null
@@ -203,6 +205,7 @@ export type Database = {
           id?: string
           name?: string
           old_price?: number | null
+          price_on_request?: boolean | null
           show_in_hero?: boolean | null
           updated_at?: string | null
           wheel_options?: Json | null

@@ -22,6 +22,8 @@ export interface Product {
   display_order?: number;
   created_at?: string;
   updated_at?: string;
+  price_on_request?: boolean;
+  default_tent_image_url?: string;
 }
 
 export interface ProductTent {

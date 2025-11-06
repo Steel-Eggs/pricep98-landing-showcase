@@ -38,7 +38,7 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
       )}
       
       <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
-        {!product.base_image_url || imageError ? (
+        {(!product.default_tent_image_url && !product.base_image_url) || imageError ? (
           <ProductImagePlaceholder name={product.name} className="w-full h-full" />
         ) : (
           <>
@@ -46,7 +46,7 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
               <div className="absolute inset-0 animate-pulse bg-muted"></div>
             )}
             <img
-              src={product.base_image_url}
+              src={product.default_tent_image_url || product.base_image_url}
               alt={product.name}
               className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-110 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
@@ -71,14 +71,22 @@ export const ProductCard = ({ product, onClick }: ProductCardProps) => {
 
         <div className="flex items-end justify-between mb-4">
           <div>
-            {product.old_price && (
-              <p className="text-sm text-muted-foreground line-through">
-                {formatPrice(product.old_price)}
+            {product.price_on_request ? (
+              <p className="text-lg font-bold text-primary">
+                Уточняйте у менеджера
               </p>
+            ) : (
+              <>
+                {product.old_price && (
+                  <p className="text-sm text-muted-foreground line-through">
+                    {formatPrice(product.old_price)}
+                  </p>
+                )}
+                <p className="text-2xl font-bold text-foreground">
+                  от {formatPrice(product.base_price)}
+                </p>
+              </>
             )}
-            <p className="text-2xl font-bold text-foreground">
-              от {formatPrice(product.base_price)}
-            </p>
           </div>
         </div>
 

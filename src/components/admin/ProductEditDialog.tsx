@@ -117,6 +117,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       wheel_options: { default: '', options: [] },
       hub_options: { default: '', options: [] },
     features: [] as string[],
+    price_on_request: false,
   });
 
   const [specifications, setSpecifications] = useState<Array<{ spec_name: string; spec_value: string; display_order: number }>>([]);
@@ -183,6 +184,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         wheel_options: product.wheel_options || { default: '', options: [] },
         hub_options: product.hub_options || { default: '', options: [] },
         features: product.features || [],
+        price_on_request: product.price_on_request || false,
       });
       
       setImagePreview(product.base_image_url || null);
@@ -253,6 +255,7 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       wheel_options: { default: '', options: [] },
       hub_options: { default: '', options: [] },
       features: [],
+      price_on_request: false,
     });
     setSpecifications([]);
     setImageFile(null);
@@ -726,6 +729,17 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             <div className="space-y-2">
               <Label>Метка скидки</Label>
               <Input value={formData.discount_label} onChange={(e) => setFormData({ ...formData, discount_label: e.target.value })} placeholder="СКИДКА 10%" />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="price_on_request"
+                checked={formData.price_on_request}
+                onCheckedChange={(checked) => setFormData({ ...formData, price_on_request: checked as boolean })}
+              />
+              <Label htmlFor="price_on_request" className="cursor-pointer">
+                Цена по запросу (показать "Уточняйте у менеджера" вместо цены)
+              </Label>
             </div>
 
             <div className="space-y-2">

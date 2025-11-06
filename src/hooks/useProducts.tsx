@@ -10,8 +10,10 @@ export const useProducts = (categorySlug?: string) => {
         .from("products")
         .select(`
           *,
-          category:categories(id, name, slug)
+          category:categories(id, name, slug),
+          product_tents!inner(image_url, is_default)
         `)
+        .eq("product_tents.is_default", true)
         .order("display_order", { ascending: true });
 
       if (categorySlug) {
@@ -21,7 +23,12 @@ export const useProducts = (categorySlug?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Product[];
+      
+      // Map the default tent image to the product
+      return (data || []).map((product: any) => ({
+        ...product,
+        default_tent_image_url: product.product_tents?.[0]?.image_url || null,
+      })) as Product[];
     },
   });
 };
