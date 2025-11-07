@@ -52,7 +52,8 @@ All colors MUST be HSL.
   }
 
   @keyframes zoom-slow {
-    0%, 100% {
+    0%,
+    100% {
       transform: scale(1);
     }
     50% {
@@ -61,11 +62,16 @@ All colors MUST be HSL.
   }
 
   @keyframes glow-pulse {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(0 84% 60% / 0.5), 0 0 40px hsl(0 84% 60% / 0.3);
+    0%,
+    100% {
+      box-shadow:
+        0 0 20px hsl(0 84% 60% / 0.5),
+        0 0 40px hsl(0 84% 60% / 0.3);
     }
     50% {
-      box-shadow: 0 0 30px hsl(0 84% 60% / 0.7), 0 0 60px hsl(0 84% 60% / 0.5);
+      box-shadow:
+        0 0 30px hsl(0 84% 60% / 0.7),
+        0 0 60px hsl(0 84% 60% / 0.5);
     }
   }
 
@@ -87,11 +93,83 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading;
   }
 
   html {
     scroll-behavior: smooth;
   }
+}
+
+/* Rich text editor styles */
+.ql-container {
+  min-height: 200px;
+  font-family: inherit;
+}
+
+.ql-editor {
+  min-height: 200px;
+}
+
+.ql-toolbar {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.ql-container {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+/* Prose styles for rich text display */
+.prose {
+  color: hsl(var(--muted-foreground));
+}
+
+.prose h1, .prose h2, .prose h3 {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h1 { font-size: 1.5em; }
+.prose h2 { font-size: 1.3em; }
+.prose h3 { font-size: 1.1em; }
+
+.prose ul, .prose ol {
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin: 0.5em 0;
+  display: list-item;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose p {
+  margin: 0.75em 0;
 }

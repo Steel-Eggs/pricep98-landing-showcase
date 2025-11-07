@@ -12,15 +12,18 @@ export interface Product {
   hero_timer_end?: string;
   wheel_options?: {
     default?: string;
-    options?: string[];
+    options?: Array<{ name: string; price: number }>;
   };
   hub_options?: {
     default?: string;
-    options?: string[];
+    options?: Array<{ name: string; price: number }>;
   };
   features?: string[];
+  display_order?: number;
   created_at?: string;
   updated_at?: string;
+  price_on_request?: boolean;
+  default_tent_image_url?: string;
 }
 
 export interface ProductTent {
@@ -43,6 +46,7 @@ export interface Tent {
   name: string;
   slug: string;
   default_price: number;
+  display_order?: number;
   created_at?: string;
 }
 

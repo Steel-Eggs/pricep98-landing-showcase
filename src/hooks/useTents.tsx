@@ -9,7 +9,7 @@ export const useTents = () => {
       const { data, error } = await supabase
         .from("tents")
         .select("*")
-        .order("default_price", { ascending: true });
+        .order("display_order", { ascending: true });
 
       if (error) throw error;
       return data as Tent[];

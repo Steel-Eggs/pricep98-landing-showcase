@@ -158,12 +158,14 @@ export type Database = {
           created_at: string | null
           description: string | null
           discount_label: string | null
+          display_order: number
           features: Json | null
           hero_timer_end: string | null
           hub_options: Json | null
           id: string
           name: string
           old_price: number | null
+          price_on_request: boolean | null
           show_in_hero: boolean | null
           updated_at: string | null
           wheel_options: Json | null
@@ -176,12 +178,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           discount_label?: string | null
+          display_order?: number
           features?: Json | null
           hero_timer_end?: string | null
           hub_options?: Json | null
           id?: string
           name: string
           old_price?: number | null
+          price_on_request?: boolean | null
           show_in_hero?: boolean | null
           updated_at?: string | null
           wheel_options?: Json | null
@@ -194,12 +198,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           discount_label?: string | null
+          display_order?: number
           features?: Json | null
           hero_timer_end?: string | null
           hub_options?: Json | null
           id?: string
           name?: string
           old_price?: number | null
+          price_on_request?: boolean | null
           show_in_hero?: boolean | null
           updated_at?: string | null
           wheel_options?: Json | null
@@ -277,6 +283,7 @@ export type Database = {
         Row: {
           created_at: string | null
           default_price: number
+          display_order: number
           id: string
           name: string
           slug: string
@@ -284,6 +291,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           default_price?: number
+          display_order?: number
           id?: string
           name: string
           slug: string
@@ -291,6 +299,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           default_price?: number
+          display_order?: number
           id?: string
           name?: string
           slug?: string

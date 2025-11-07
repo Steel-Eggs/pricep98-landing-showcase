@@ -32,9 +32,15 @@ interface OrderRequest {
     tent?: string;
     accessories: string[];
   };
+  basePrice: number;
+  oldPrice?: number;
+  tentPrice?: number;
+  tentName?: string;
+  accessoriesPrices?: Array<{ name: string; price: number }>;
   totalPrice: number;
   name: string;
   phone: string;
+  isFromHero?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -89,32 +95,88 @@ const handler = async (req: Request): Promise<Response> => {
         <p>Пожалуйста, свяжитесь с клиентом как можно скорее.</p>
       `;
     } else if (requestData.type === "order") {
-      const accessoriesList = requestData.configuration.accessories.length > 0
-        ? `<li><strong>Комплектующие:</strong> ${requestData.configuration.accessories.join(", ")}</li>`
+      const formatPrice = (price: number) => new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0,
+      }).format(price);
+
+      const accessoriesList = requestData.accessoriesPrices && requestData.accessoriesPrices.length > 0
+        ? requestData.accessoriesPrices.map(acc => 
+            `<li>• ${acc.name} <strong>(+${formatPrice(acc.price)})</strong></li>`
+          ).join("")
         : "";
+
+      const sourceNote = requestData.isFromHero ? "📍 <em>Заявка с главной страницы (акция)</em>" : "";
 
       emailSubject = `Новый заказ: ${requestData.productName}`;
       emailHtml = `
-        <h1>Новый заказ прицепа</h1>
-        <h2>Товар: ${requestData.productName}</h2>
-        
-        <h3>Конфигурация:</h3>
-        <ul>
-          <li><strong>Колёса:</strong> ${requestData.configuration.wheels}</li>
-          <li><strong>Ступица:</strong> ${requestData.configuration.hub}</li>
-          ${requestData.configuration.tent ? `<li><strong>Тент:</strong> ${requestData.configuration.tent}</li>` : ""}
-          ${accessoriesList}
-        </ul>
-        
-        <h3>Итоговая цена: ${new Intl.NumberFormat('ru-RU', {
-          style: 'currency',
-          currency: 'RUB',
-          minimumFractionDigits: 0,
-        }).format(requestData.totalPrice)}</h3>
-        
-        <h3>Контактные данные:</h3>
-        <p><strong>Имя:</strong> ${requestData.name}</p>
-        <p><strong>Телефон:</strong> ${requestData.phone}</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #3b82f6; border-bottom: 3px solid #3b82f6; padding-bottom: 10px;">🚚 Новый заказ прицепа</h1>
+          ${sourceNote ? `<p style="margin: 15px 0;">${sourceNote}</p>` : ""}
+          
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="color: #1f2937; margin-top: 0;">📦 ТОВАР: ${requestData.productName}</h2>
+          </div>
+          
+          <div style="background: #fff; border: 2px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #059669; margin-top: 0;">💰 ЦЕНЫ:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="padding: 8px 0; font-size: 16px;">
+                <strong>Базовая цена:</strong> ${formatPrice(requestData.basePrice)}
+              </li>
+              ${requestData.oldPrice ? `
+                <li style="padding: 8px 0; font-size: 16px;">
+                  <strong>Старая цена:</strong> 
+                  <span style="text-decoration: line-through; color: #9ca3af;">${formatPrice(requestData.oldPrice)}</span>
+                  <span style="color: #ef4444; font-weight: bold; margin-left: 10px;">
+                    СКИДКА ${formatPrice(requestData.oldPrice - requestData.basePrice)}
+                  </span>
+                </li>
+              ` : ""}
+            </ul>
+          </div>
+          
+          <div style="background: #fff; border: 2px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #3b82f6; margin-top: 0;">⚙️ КОНФИГУРАЦИЯ:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="padding: 8px 0; font-size: 16px;">
+                <strong>🔘 Колёса:</strong> ${requestData.configuration.wheels}
+              </li>
+              <li style="padding: 8px 0; font-size: 16px;">
+                <strong>🔩 Ступица:</strong> ${requestData.configuration.hub}
+              </li>
+              ${requestData.tentName ? `
+                <li style="padding: 8px 0; font-size: 16px;">
+                  <strong>⛺ Тент и каркас:</strong> ${requestData.tentName}
+                  ${requestData.tentPrice && requestData.tentPrice !== 0 ? 
+                    `<strong style="color: #059669;">(${requestData.tentPrice > 0 ? '+' : ''}${formatPrice(requestData.tentPrice)})</strong>` : 
+                    '<em style="color: #6b7280;">(базовая)</em>'}
+                </li>
+              ` : ""}
+            </ul>
+          </div>
+          
+          ${accessoriesList ? `
+          <div style="background: #fff; border: 2px solid #e5e7eb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #f59e0b; margin-top: 0;">🛠️ КОМПЛЕКТУЮЩИЕ:</h3>
+            <ul style="list-style: none; padding: 0; font-size: 16px;">
+              ${accessoriesList}
+            </ul>
+          </div>
+          ` : ""}
+          
+          <div style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; padding: 25px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <h2 style="margin: 0; font-size: 28px;">💵 ИТОГОВАЯ ЦЕНА</h2>
+            <p style="margin: 10px 0 0 0; font-size: 36px; font-weight: bold;">${formatPrice(requestData.totalPrice)}</p>
+          </div>
+          
+          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 4px; margin: 20px 0;">
+            <h3 style="color: #92400e; margin-top: 0;">👤 КОНТАКТНЫЕ ДАННЫЕ:</h3>
+            <p style="margin: 10px 0; font-size: 16px;"><strong>Имя:</strong> ${requestData.name}</p>
+            <p style="margin: 10px 0; font-size: 16px;"><strong>Телефон:</strong> ${requestData.phone}</p>
+          </div>
+        </div>
       `;
     }
 

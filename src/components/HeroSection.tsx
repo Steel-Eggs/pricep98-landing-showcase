@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 import { useHeroProduct } from "@/hooks/useProductDetails";
+import { useProductTents } from "@/hooks/useTents";
 import { supabase } from "@/integrations/supabase/client";
 
 declare global {
@@ -31,6 +32,7 @@ export const HeroSection = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const { data: heroProduct, isLoading } = useHeroProduct();
+  const { data: productTents = [] } = useProductTents(heroProduct?.id || "");
 
   // Timer countdown based on hero_timer_end
   useEffect(() => {
@@ -272,14 +274,40 @@ export const HeroSection = () => {
       return;
     }
 
+    if (!heroProduct) {
+      toast.error("Товар не найден");
+      return;
+    }
+
     try {
+      // Find default tent
+      const defaultTent = productTents.find(pt => pt.is_default);
+      const defaultWheels = heroProduct.wheel_options?.default || "2 колеса R13";
+      const defaultHub = heroProduct.hub_options?.default || "Жигулевская ступица";
+      
+      // Calculate total price with default configuration
+      const tentPrice = defaultTent?.price || 0;
+      const totalPrice = heroProduct.base_price + tentPrice;
+
       const { error } = await supabase.functions.invoke("send-order-notification", {
         body: {
-          type: "promo",
+          type: "order",
+          productName: heroProduct.name,
+          configuration: {
+            wheels: defaultWheels,
+            hub: defaultHub,
+            tent: defaultTent?.tent?.name,
+            accessories: [],
+          },
+          basePrice: heroProduct.base_price,
+          oldPrice: heroProduct.old_price,
+          tentName: defaultTent?.tent?.name,
+          tentPrice: tentPrice,
+          accessoriesPrices: [],
+          totalPrice,
           name,
           phone,
-          productName: heroProduct?.name,
-          productPrice: heroProduct?.base_price,
+          isFromHero: true,
         },
       });
 
@@ -290,27 +318,26 @@ export const HeroSection = () => {
       setPhone("+7 (");
       setAgreed(false);
     } catch (error) {
-      console.error("Error sending promo request:", error);
+      console.error("Error sending order request:", error);
       toast.error("Произошла ошибка. Попробуйте позже");
     }
   };
 
   return (
-    <section className="relative h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-screen md:h-auto lg:h-screen flex items-start overflow-hidden">
       {/* 3D Background */}
       <div ref={canvasRef} className="absolute inset-0 z-0" />
       
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] z-[1]"></div>
 
-      <div className="container mx-auto px-4 py-2 -mt-10 pb-8 md:pb-12 relative z-10">
+      <div className="container mx-auto px-4 pt-8 md:pt-16 lg:pt-16 pb-8 md:pb-16 lg:pb-12 relative z-10">
         {/* Title */}
         <div className="animate-fade-in mb-3">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
             <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-              Более 50 моделей
+              Более 50 моделей{" "}
             </span>
-            <br />
             <span className="relative">
               легковых прицепов!
               <Sparkles className="absolute -top-2 -right-10 w-8 h-8 text-accent animate-pulse" />

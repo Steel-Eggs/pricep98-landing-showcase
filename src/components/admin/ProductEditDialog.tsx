@@ -9,8 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Trash2, Plus, Upload, X, GripVertical } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import {
   DndContext,
   closestCenter,
@@ -111,15 +114,16 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     description: '',
     show_in_hero: false,
     hero_timer_end: '',
-    wheel_options: { default: '2 колеса R13', options: ['2 колеса R13'] },
-    hub_options: { default: 'ВАЗ', options: ['ВАЗ'] },
+      wheel_options: { default: '', options: [] },
+      hub_options: { default: '', options: [] },
     features: [] as string[],
+    price_on_request: false,
   });
 
   const [specifications, setSpecifications] = useState<Array<{ spec_name: string; spec_value: string; display_order: number }>>([]);
   const [newFeature, setNewFeature] = useState('');
-  const [newWheelOption, setNewWheelOption] = useState('');
-  const [newHubOption, setNewHubOption] = useState('');
+  const [newWheelOption, setNewWheelOption] = useState({ name: '', price: 0 });
+  const [newHubOption, setNewHubOption] = useState({ name: '', price: 0 });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [productTents, setProductTents] = useState<Array<{
@@ -129,6 +133,12 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     image_file?: File;
     image_preview?: string;
     image_url?: string;
+  }>>([]);
+
+  const [productAccessories, setProductAccessories] = useState<Array<{
+    accessory_id: string;
+    price: number;
+    is_available: boolean;
   }>>([]);
 
   const { data: categories } = useQuery({
@@ -149,6 +159,15 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     },
   });
 
+  const { data: accessories } = useQuery({
+    queryKey: ['accessories'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('accessories').select('*').order('display_order');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useEffect(() => {
     if (product) {
       setFormData({
@@ -162,14 +181,16 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         description: product.description || '',
         show_in_hero: product.show_in_hero || false,
         hero_timer_end: product.hero_timer_end || '',
-        wheel_options: product.wheel_options || { default: '2 колеса R13', options: ['2 колеса R13'] },
-        hub_options: product.hub_options || { default: 'ВАЗ', options: ['ВАЗ'] },
+        wheel_options: product.wheel_options || { default: '', options: [] },
+        hub_options: product.hub_options || { default: '', options: [] },
         features: product.features || [],
+        price_on_request: product.price_on_request || false,
       });
       
       setImagePreview(product.base_image_url || null);
       loadSpecifications(product.id);
       loadProductTents(product.id);
+      loadProductAccessories(product.id);
     } else {
       resetForm();
     }
@@ -204,6 +225,21 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     }
   };
 
+  const loadProductAccessories = async (productId: string) => {
+    const { data, error } = await supabase
+      .from('product_accessories')
+      .select('*')
+      .eq('product_id', productId);
+    
+    if (!error && data) {
+      setProductAccessories(data.map(pa => ({
+        accessory_id: pa.accessory_id,
+        price: pa.price,
+        is_available: pa.is_available,
+      })));
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -216,14 +252,16 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
       description: '',
       show_in_hero: false,
       hero_timer_end: '',
-      wheel_options: { default: '2 колеса R13', options: ['2 колеса R13'] },
-      hub_options: { default: 'ВАЗ', options: ['ВАЗ'] },
+      wheel_options: { default: '', options: [] },
+      hub_options: { default: '', options: [] },
       features: [],
+      price_on_request: false,
     });
     setSpecifications([]);
     setImageFile(null);
     setImagePreview(null);
     setProductTents([]);
+    setProductAccessories([]);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -336,6 +374,19 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             image_url: tentImageUrl || null,
           });
         }
+
+        // Update product_accessories
+        await supabase.from('product_accessories').delete().eq('product_id', product.id);
+        if (productAccessories.length > 0) {
+          await supabase.from('product_accessories').insert(
+            productAccessories.map(pa => ({
+              product_id: product.id,
+              accessory_id: pa.accessory_id,
+              price: pa.price,
+              is_available: pa.is_available,
+            }))
+          );
+        }
       } else {
         const { data: newProduct, error } = await supabase
           .from('products')
@@ -366,6 +417,18 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             });
           }
         }
+
+        // Insert product_accessories for new product
+        if (productAccessories.length > 0 && newProduct) {
+          await supabase.from('product_accessories').insert(
+            productAccessories.map(pa => ({
+              product_id: newProduct.id,
+              accessory_id: pa.accessory_id,
+              price: pa.price,
+              is_available: pa.is_available,
+            }))
+          );
+        }
       }
     },
     onSuccess: () => {
@@ -387,29 +450,69 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     setFormData({ ...formData, features: formData.features.filter((_, i) => i !== index) });
   };
 
+  const removeWheelOption = (index: number) => {
+    const removedOption = formData.wheel_options.options[index];
+    const newOptions = formData.wheel_options.options.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      wheel_options: {
+        options: newOptions,
+        default: formData.wheel_options.default === removedOption.name && newOptions.length > 0
+          ? newOptions[0].name
+          : formData.wheel_options.default
+      }
+    });
+  };
+
+  const removeHubOption = (index: number) => {
+    const removedOption = formData.hub_options.options[index];
+    const newOptions = formData.hub_options.options.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      hub_options: {
+        options: newOptions,
+        default: formData.hub_options.default === removedOption.name && newOptions.length > 0
+          ? newOptions[0].name
+          : formData.hub_options.default
+      }
+    });
+  };
+
   const addWheelOption = () => {
-    if (newWheelOption.trim()) {
+    if (newWheelOption.name.trim()) {
       setFormData({
         ...formData,
         wheel_options: {
           ...formData.wheel_options,
-          options: [...formData.wheel_options.options, newWheelOption.trim()]
+          options: [...formData.wheel_options.options, { 
+            name: newWheelOption.name.trim(), 
+            price: newWheelOption.price 
+          }],
+          default: formData.wheel_options.options.length === 0 
+            ? newWheelOption.name.trim() 
+            : formData.wheel_options.default
         }
       });
-      setNewWheelOption('');
+      setNewWheelOption({ name: '', price: 0 });
     }
   };
 
   const addHubOption = () => {
-    if (newHubOption.trim()) {
+    if (newHubOption.name.trim()) {
       setFormData({
         ...formData,
         hub_options: {
           ...formData.hub_options,
-          options: [...formData.hub_options.options, newHubOption.trim()]
+          options: [...formData.hub_options.options, { 
+            name: newHubOption.name.trim(), 
+            price: newHubOption.price 
+          }],
+          default: formData.hub_options.options.length === 0 
+            ? newHubOption.name.trim() 
+            : formData.hub_options.default
         }
       });
-      setNewHubOption('');
+      setNewHubOption({ name: '', price: 0 });
     }
   };
 
@@ -519,6 +622,33 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
     ));
   };
 
+  const addProductAccessory = (accessoryId: string) => {
+    const accessory = accessories?.find(a => a.id === accessoryId);
+    if (!accessory) return;
+    
+    const exists = productAccessories.some(pa => pa.accessory_id === accessoryId);
+    if (exists) {
+      toast.error('Это комплектующее уже добавлено');
+      return;
+    }
+
+    setProductAccessories([...productAccessories, {
+      accessory_id: accessoryId,
+      price: accessory.default_price,
+      is_available: true,
+    }]);
+  };
+
+  const removeProductAccessory = (accessoryId: string) => {
+    setProductAccessories(productAccessories.filter(pa => pa.accessory_id !== accessoryId));
+  };
+
+  const updateProductAccessory = (accessoryId: string, field: string, value: any) => {
+    setProductAccessories(productAccessories.map(pa => 
+      pa.accessory_id === accessoryId ? { ...pa, [field]: value } : pa
+    ));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -527,10 +657,11 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">Основное</TabsTrigger>
             <TabsTrigger value="config">Конфигурация</TabsTrigger>
             <TabsTrigger value="tents">Тенты</TabsTrigger>
+            <TabsTrigger value="accessories">Комплектующие</TabsTrigger>
             <TabsTrigger value="description">Описание</TabsTrigger>
             <TabsTrigger value="specs">Характеристики</TabsTrigger>
           </TabsList>
@@ -555,47 +686,6 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Изображение товара</Label>
-              {imagePreview ? (
-                <div className="relative">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="w-full h-48 object-contain rounded-lg border"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={removeImage}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <Label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Нажмите для выбора изображения
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      PNG, JPG, WEBP до 5 МБ
-                    </div>
-                  </Label>
-                  <Input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
-                </div>
-              )}
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Базовая цена (₽)</Label>
@@ -610,6 +700,17 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             <div className="space-y-2">
               <Label>Метка скидки</Label>
               <Input value={formData.discount_label} onChange={(e) => setFormData({ ...formData, discount_label: e.target.value })} placeholder="СКИДКА 10%" />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="price_on_request"
+                checked={formData.price_on_request}
+                onCheckedChange={(checked) => setFormData({ ...formData, price_on_request: checked as boolean })}
+              />
+              <Label htmlFor="price_on_request" className="cursor-pointer">
+                Цена по запросу (показать "Уточняйте у менеджера" вместо цены)
+              </Label>
             </div>
 
             <div className="space-y-2">
@@ -647,27 +748,73 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
           </TabsContent>
 
           <TabsContent value="config" className="space-y-4">
-            <div className="space-y-2">
-              <Label>Колёса (по умолчанию)</Label>
-              <Input
-                value={formData.wheel_options.default}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  wheel_options: { ...formData.wheel_options, default: e.target.value }
-                })}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Колёса (по умолчанию)</Label>
+                <RadioGroup
+                  value={formData.wheel_options.default}
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    wheel_options: { ...formData.wheel_options, default: value }
+                  })}
+                  className="space-y-2"
+                >
+                  {formData.wheel_options.options.map((option, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.name} id={`wheel-${idx}`} />
+                        <Label htmlFor={`wheel-${idx}`} className="cursor-pointer">
+                          {option.name}
+                        </Label>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {option.price === 0 ? 'базовая цена' : `+${option.price} ₽`}
+                      </span>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {formData.wheel_options.options.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Добавьте хотя бы одну опцию колёс ниже
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Доступные опции колёс</Label>
                 {formData.wheel_options.options.map((option, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <Input value={option} disabled />
+                    <Input value={option.name} disabled className="flex-1" />
+                    <Input 
+                      type="number" 
+                      value={option.price} 
+                      disabled
+                      className="w-32"
+                      placeholder="Цена"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => removeWheelOption(idx)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
                 <div className="flex gap-2">
                   <Input
-                    value={newWheelOption}
-                    onChange={(e) => setNewWheelOption(e.target.value)}
-                    placeholder="Новая опция"
+                    value={newWheelOption.name}
+                    onChange={(e) => setNewWheelOption({ ...newWheelOption, name: e.target.value })}
+                    placeholder="Название (например, Колёса R13)"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={newWheelOption.price}
+                    onChange={(e) => setNewWheelOption({ ...newWheelOption, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="Доп. цена (₽)"
+                    className="w-32"
                   />
                   <Button type="button" onClick={addWheelOption}>
                     <Plus className="w-4 h-4" />
@@ -676,27 +823,73 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Ступица (по умолчанию)</Label>
-              <Input
-                value={formData.hub_options.default}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  hub_options: { ...formData.hub_options, default: e.target.value }
-                })}
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Ступица (по умолчанию)</Label>
+                <RadioGroup
+                  value={formData.hub_options.default}
+                  onValueChange={(value) => setFormData({
+                    ...formData,
+                    hub_options: { ...formData.hub_options, default: value }
+                  })}
+                  className="space-y-2"
+                >
+                  {formData.hub_options.options.map((option, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.name} id={`hub-${idx}`} />
+                        <Label htmlFor={`hub-${idx}`} className="cursor-pointer">
+                          {option.name}
+                        </Label>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {option.price === 0 ? 'базовая цена' : `+${option.price} ₽`}
+                      </span>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {formData.hub_options.options.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Добавьте хотя бы одну опцию ступиц ниже
+                  </p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Доступные опции ступиц</Label>
                 {formData.hub_options.options.map((option, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <Input value={option} disabled />
+                    <Input value={option.name} disabled className="flex-1" />
+                    <Input 
+                      type="number" 
+                      value={option.price} 
+                      disabled
+                      className="w-32"
+                      placeholder="Цена"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => removeHubOption(idx)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 ))}
                 <div className="flex gap-2">
                   <Input
-                    value={newHubOption}
-                    onChange={(e) => setNewHubOption(e.target.value)}
-                    placeholder="Новая опция"
+                    value={newHubOption.name}
+                    onChange={(e) => setNewHubOption({ ...newHubOption, name: e.target.value })}
+                    placeholder="Название (например, Ступица 4x100)"
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={newHubOption.price}
+                    onChange={(e) => setNewHubOption({ ...newHubOption, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="Доп. цена (₽)"
+                    className="w-32"
                   />
                   <Button type="button" onClick={addHubOption}>
                     <Plus className="w-4 h-4" />
@@ -803,14 +996,81 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
             </div>
           </TabsContent>
 
+          <TabsContent value="accessories" className="space-y-4">
+            <div className="space-y-2">
+              <Label>Добавить комплектующее</Label>
+              <Select onValueChange={addProductAccessory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите комплектующее" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accessories?.filter(a => !productAccessories.some(pa => pa.accessory_id === a.id)).map((accessory) => (
+                    <SelectItem key={accessory.id} value={accessory.id}>
+                      {accessory.name} ({accessory.default_price} ₽)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              {productAccessories.map((pa) => {
+                const accessory = accessories?.find(a => a.id === pa.accessory_id);
+                return (
+                  <div key={pa.accessory_id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-semibold">{accessory?.name}</h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeProductAccessory(pa.accessory_id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Цена (₽)</Label>
+                      <Input
+                        type="number"
+                        value={pa.price}
+                        onChange={(e) => updateProductAccessory(pa.accessory_id, 'price', parseFloat(e.target.value))}
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={pa.is_available}
+                        onCheckedChange={(checked) => updateProductAccessory(pa.accessory_id, 'is_available', checked)}
+                      />
+                      <Label>Доступно</Label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </TabsContent>
+
           <TabsContent value="description" className="space-y-4">
             <div className="space-y-2">
               <Label>Описание</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={6}
-              />
+              <div className="mt-2">
+                <ReactQuill
+                  theme="snow"
+                  value={formData.description}
+                  onChange={(value) => setFormData({ ...formData, description: value })}
+                  placeholder="Описание продукта"
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['clean']
+                    ],
+                  }}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

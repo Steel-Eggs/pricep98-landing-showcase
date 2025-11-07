@@ -20,12 +20,8 @@ interface ProductModalProps {
 
 export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps) => {
   const [showCallbackModal, setShowCallbackModal] = useState(false);
-  const [selectedWheels, setSelectedWheels] = useState<string>(
-    product.wheel_options?.default || "2 колеса R13"
-  );
-  const [selectedHub, setSelectedHub] = useState<string>(
-    product.hub_options?.default || "Жигулевская ступица"
-  );
+  const [selectedWheels, setSelectedWheels] = useState<string>("");
+  const [selectedHub, setSelectedHub] = useState<string>("");
   const [selectedTentId, setSelectedTentId] = useState<string | null>(null);
   const [selectedAccessories, setSelectedAccessories] = useState<Set<string>>(new Set());
 
@@ -33,18 +29,42 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
   const { data: accessories = [], isLoading: accessoriesLoading } = useAccessories();
   const { data: specifications = [], isLoading: specificationsLoading } = useProductSpecifications(product.id);
 
-  // Set default tent on load
+  // Reset state when modal opens
   useEffect(() => {
-    if (productTents.length > 0 && !selectedTentId) {
+    if (open) {
+      setSelectedWheels(product.wheel_options?.default || "");
+      setSelectedHub(product.hub_options?.default || "");
+      setSelectedAccessories(new Set());
+    }
+  }, [open, product]);
+
+  // Set default tent when data loads
+  useEffect(() => {
+    if (open && productTents.length > 0) {
       const defaultTent = productTents.find(pt => pt.is_default);
       if (defaultTent) {
         setSelectedTentId(defaultTent.tent_id);
+      } else if (productTents[0]) {
+        // Fallback to first tent if no default
+        setSelectedTentId(productTents[0].tent_id);
       }
     }
-  }, [productTents, selectedTentId]);
+  }, [open, productTents]);
 
   const selectedProductTent = productTents.find(pt => pt.tent_id === selectedTentId);
   const currentImage = selectedProductTent?.image_url || product.base_image_url;
+
+  const selectedWheelPrice = useMemo(() => {
+    if (!selectedWheels || !product.wheel_options?.options) return 0;
+    const wheelOption = product.wheel_options.options.find(opt => opt.name === selectedWheels);
+    return wheelOption?.price || 0;
+  }, [selectedWheels, product.wheel_options]);
+
+  const selectedHubPrice = useMemo(() => {
+    if (!selectedHub || !product.hub_options?.options) return 0;
+    const hubOption = product.hub_options.options.find(opt => opt.name === selectedHub);
+    return hubOption?.price || 0;
+  }, [selectedHub, product.hub_options]);
 
   const totalPrice = useMemo(() => {
     let price = product.base_price;
@@ -54,6 +74,12 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
       price += selectedProductTent.price;
     }
     
+    // Add wheel price
+    price += selectedWheelPrice;
+    
+    // Add hub price
+    price += selectedHubPrice;
+    
     // Add accessories prices
     accessories.forEach(accessory => {
       if (selectedAccessories.has(accessory.id)) {
@@ -62,7 +88,7 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
     });
     
     return price;
-  }, [product.base_price, selectedProductTent, accessories, selectedAccessories]);
+  }, [product.base_price, selectedProductTent, selectedWheelPrice, selectedHubPrice, accessories, selectedAccessories]);
 
   const handleAccessoryToggle = (accessoryId: string) => {
     const newSelected = new Set(selectedAccessories);
@@ -93,6 +119,13 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
         .filter(acc => selectedAccessories.has(acc.id))
         .map(acc => acc.name);
 
+      const accessoriesPrices = accessories
+        .filter(acc => selectedAccessories.has(acc.id))
+        .map(acc => ({
+          name: acc.name,
+          price: acc.default_price,
+        }));
+
       const { error } = await supabase.functions.invoke("send-order-notification", {
         body: {
           type: "order",
@@ -103,9 +136,15 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
             tent: selectedProductTent?.tent?.name,
             accessories: selectedAccessoryNames,
           },
+          basePrice: product.base_price,
+          oldPrice: product.old_price,
+          tentName: selectedProductTent?.tent?.name,
+          tentPrice: selectedProductTent?.price,
+          accessoriesPrices,
           totalPrice,
           name,
           phone,
+          isFromHero: false,
         },
       });
 
@@ -164,9 +203,10 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
                 
                 <TabsContent value="description" className="space-y-4 mt-6">
                   {product.description ? (
-                    <p className="text-muted-foreground leading-relaxed">
-                      {product.description}
-                    </p>
+                    <div 
+                      className="text-muted-foreground leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{ __html: product.description }}
+                    />
                   ) : (
                     <p className="text-sm text-muted-foreground italic">
                       Описание скоро будет добавлено
@@ -221,14 +261,22 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
 
               {/* Price */}
               <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border-2 border-primary/20">
-                {product.old_price && (
-                  <p className="text-lg text-muted-foreground line-through">
-                    {formatPrice(product.old_price)}
+                {product.price_on_request ? (
+                  <p className="text-2xl font-bold text-primary text-center">
+                    Уточняйте у менеджера
                   </p>
+                ) : (
+                  <>
+                    {product.old_price && (
+                      <p className="text-lg text-muted-foreground line-through">
+                        {formatPrice(product.old_price)}
+                      </p>
+                    )}
+                    <p className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                      {formatPrice(totalPrice)}
+                    </p>
+                  </>
                 )}
-                <p className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {formatPrice(totalPrice)}
-                </p>
               </div>
 
               {/* Availability */}
@@ -242,16 +290,19 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
                 {product.wheel_options?.options && product.wheel_options.options.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="font-bold text-base text-foreground">Колёса</h3>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2">
                       {product.wheel_options.options.map((wheel) => (
                         <Button
-                          key={wheel}
+                          key={wheel.name}
                           type="button"
-                          variant={selectedWheels === wheel ? "default" : "outline"}
-                          onClick={() => setSelectedWheels(wheel)}
-                          className="flex-1 hover:shadow-lg transition-all hover:-translate-y-0.5"
+                          variant={selectedWheels === wheel.name ? "default" : "outline"}
+                          onClick={() => setSelectedWheels(wheel.name)}
+                          className="w-full hover:shadow-lg transition-all hover:-translate-y-0.5 flex justify-between items-center"
                         >
-                          {wheel}
+                          <span>{wheel.name}</span>
+                          {wheel.price > 0 && (
+                            <span className="text-xs opacity-70">+{formatPrice(wheel.price)}</span>
+                          )}
                         </Button>
                       ))}
                     </div>
@@ -262,16 +313,19 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
                 {product.hub_options?.options && product.hub_options.options.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="font-bold text-base text-foreground">Ступица</h3>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2">
                       {product.hub_options.options.map((hub) => (
                         <Button
-                          key={hub}
+                          key={hub.name}
                           type="button"
-                          variant={selectedHub === hub ? "default" : "outline"}
-                          onClick={() => setSelectedHub(hub)}
-                          className="flex-1 hover:shadow-lg transition-all hover:-translate-y-0.5"
+                          variant={selectedHub === hub.name ? "default" : "outline"}
+                          onClick={() => setSelectedHub(hub.name)}
+                          className="w-full hover:shadow-lg transition-all hover:-translate-y-0.5 flex justify-between items-center"
                         >
-                          {hub}
+                          <span>{hub.name}</span>
+                          {hub.price > 0 && (
+                            <span className="text-xs opacity-70">+{formatPrice(hub.price)}</span>
+                          )}
                         </Button>
                       ))}
                     </div>
@@ -333,7 +387,8 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
               {/* Order Button */}
               <Button
                 size="lg"
-                className="w-full text-lg py-6 hover:shadow-2xl transition-all hover:-translate-y-1"
+                variant="destructive"
+                className="w-full text-xl py-8 hover:shadow-2xl transition-all hover:-translate-y-1 font-bold"
                 onClick={handleOrder}
               >
                 ЗАКАЗАТЬ
@@ -346,6 +401,7 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
       <CallbackModal
         open={showCallbackModal}
         onOpenChange={setShowCallbackModal}
+        onSubmit={handleCallbackSubmit}
       />
     </>
   );

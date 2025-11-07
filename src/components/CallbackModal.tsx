@@ -10,9 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 interface CallbackModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit?: (name: string, phone: string) => Promise<void>;
 }
 
-export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
+export const CallbackModal = ({ open, onOpenChange, onSubmit }: CallbackModalProps) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("+7 (");
   const [agreed, setAgreed] = useState(false);
@@ -69,21 +70,31 @@ export const CallbackModal = ({ open, onOpenChange }: CallbackModalProps) => {
     }
 
     try {
-      const { error } = await supabase.functions.invoke("send-order-notification", {
-        body: {
-          type: "callback",
-          name,
-          phone,
-        },
-      });
+      // If custom onSubmit is provided, use it (for detailed orders)
+      if (onSubmit) {
+        await onSubmit(name, phone);
+        setName("");
+        setPhone("+7 (");
+        setAgreed(false);
+        onOpenChange(false);
+      } else {
+        // Otherwise, use default callback logic
+        const { error } = await supabase.functions.invoke("send-order-notification", {
+          body: {
+            type: "callback",
+            name,
+            phone,
+          },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast.success("Спасибо! Мы скоро свяжемся с вами");
-      setName("");
-      setPhone("+7 (");
-      setAgreed(false);
-      onOpenChange(false);
+        toast.success("Спасибо! Мы скоро свяжемся с вами");
+        setName("");
+        setPhone("+7 (");
+        setAgreed(false);
+        onOpenChange(false);
+      }
     } catch (error) {
       console.error("Error sending callback request:", error);
       toast.error("Произошла ошибка. Попробуйте позже");
