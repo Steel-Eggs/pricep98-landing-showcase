@@ -122,8 +122,8 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
 
   const [specifications, setSpecifications] = useState<Array<{ spec_name: string; spec_value: string; display_order: number }>>([]);
   const [newFeature, setNewFeature] = useState('');
-  const [newWheelOption, setNewWheelOption] = useState('');
-  const [newHubOption, setNewHubOption] = useState('');
+  const [newWheelOption, setNewWheelOption] = useState({ name: '', price: 0 });
+  const [newHubOption, setNewHubOption] = useState({ name: '', price: 0 });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [productTents, setProductTents] = useState<Array<{
@@ -451,56 +451,68 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
   };
 
   const removeWheelOption = (index: number) => {
+    const removedOption = formData.wheel_options.options[index];
     const newOptions = formData.wheel_options.options.filter((_, i) => i !== index);
     setFormData({
       ...formData,
       wheel_options: {
-        ...formData.wheel_options,
         options: newOptions,
-        default: newOptions.includes(formData.wheel_options.default) 
-          ? formData.wheel_options.default 
-          : (newOptions[0] || '')
+        default: formData.wheel_options.default === removedOption.name && newOptions.length > 0
+          ? newOptions[0].name
+          : formData.wheel_options.default
       }
     });
   };
 
   const removeHubOption = (index: number) => {
+    const removedOption = formData.hub_options.options[index];
     const newOptions = formData.hub_options.options.filter((_, i) => i !== index);
     setFormData({
       ...formData,
       hub_options: {
-        ...formData.hub_options,
         options: newOptions,
-        default: newOptions.includes(formData.hub_options.default) 
-          ? formData.hub_options.default 
-          : (newOptions[0] || '')
+        default: formData.hub_options.default === removedOption.name && newOptions.length > 0
+          ? newOptions[0].name
+          : formData.hub_options.default
       }
     });
   };
 
   const addWheelOption = () => {
-    if (newWheelOption.trim()) {
+    if (newWheelOption.name.trim()) {
       setFormData({
         ...formData,
         wheel_options: {
           ...formData.wheel_options,
-          options: [...formData.wheel_options.options, newWheelOption.trim()]
+          options: [...formData.wheel_options.options, { 
+            name: newWheelOption.name.trim(), 
+            price: newWheelOption.price 
+          }],
+          default: formData.wheel_options.options.length === 0 
+            ? newWheelOption.name.trim() 
+            : formData.wheel_options.default
         }
       });
-      setNewWheelOption('');
+      setNewWheelOption({ name: '', price: 0 });
     }
   };
 
   const addHubOption = () => {
-    if (newHubOption.trim()) {
+    if (newHubOption.name.trim()) {
       setFormData({
         ...formData,
         hub_options: {
           ...formData.hub_options,
-          options: [...formData.hub_options.options, newHubOption.trim()]
+          options: [...formData.hub_options.options, { 
+            name: newHubOption.name.trim(), 
+            price: newHubOption.price 
+          }],
+          default: formData.hub_options.options.length === 0 
+            ? newHubOption.name.trim() 
+            : formData.hub_options.default
         }
       });
-      setNewHubOption('');
+      setNewHubOption({ name: '', price: 0 });
     }
   };
 
@@ -748,11 +760,16 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                   className="space-y-2"
                 >
                   {formData.wheel_options.options.map((option, idx) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`wheel-${idx}`} />
-                      <Label htmlFor={`wheel-${idx}`} className="cursor-pointer">
-                        {option}
-                      </Label>
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.name} id={`wheel-${idx}`} />
+                        <Label htmlFor={`wheel-${idx}`} className="cursor-pointer">
+                          {option.name}
+                        </Label>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {option.price === 0 ? 'базовая цена' : `+${option.price} ₽`}
+                      </span>
                     </div>
                   ))}
                 </RadioGroup>
@@ -767,7 +784,14 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                 <Label>Доступные опции колёс</Label>
                 {formData.wheel_options.options.map((option, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <Input value={option} disabled className="flex-1" />
+                    <Input value={option.name} disabled className="flex-1" />
+                    <Input 
+                      type="number" 
+                      value={option.price} 
+                      disabled
+                      className="w-32"
+                      placeholder="Цена"
+                    />
                     <Button 
                       type="button" 
                       variant="destructive" 
@@ -780,10 +804,17 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                 ))}
                 <div className="flex gap-2">
                   <Input
-                    value={newWheelOption}
-                    onChange={(e) => setNewWheelOption(e.target.value)}
-                    placeholder="Новая опция колёс"
+                    value={newWheelOption.name}
+                    onChange={(e) => setNewWheelOption({ ...newWheelOption, name: e.target.value })}
+                    placeholder="Название (например, Колёса R13)"
                     className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={newWheelOption.price}
+                    onChange={(e) => setNewWheelOption({ ...newWheelOption, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="Доп. цена (₽)"
+                    className="w-32"
                   />
                   <Button type="button" onClick={addWheelOption}>
                     <Plus className="w-4 h-4" />
@@ -804,11 +835,16 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                   className="space-y-2"
                 >
                   {formData.hub_options.options.map((option, idx) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`hub-${idx}`} />
-                      <Label htmlFor={`hub-${idx}`} className="cursor-pointer">
-                        {option}
-                      </Label>
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={option.name} id={`hub-${idx}`} />
+                        <Label htmlFor={`hub-${idx}`} className="cursor-pointer">
+                          {option.name}
+                        </Label>
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        {option.price === 0 ? 'базовая цена' : `+${option.price} ₽`}
+                      </span>
                     </div>
                   ))}
                 </RadioGroup>
@@ -823,7 +859,14 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                 <Label>Доступные опции ступиц</Label>
                 {formData.hub_options.options.map((option, idx) => (
                   <div key={idx} className="flex gap-2">
-                    <Input value={option} disabled className="flex-1" />
+                    <Input value={option.name} disabled className="flex-1" />
+                    <Input 
+                      type="number" 
+                      value={option.price} 
+                      disabled
+                      className="w-32"
+                      placeholder="Цена"
+                    />
                     <Button 
                       type="button" 
                       variant="destructive" 
@@ -836,10 +879,17 @@ export const ProductEditDialog = ({ open, onClose, product }: ProductEditDialogP
                 ))}
                 <div className="flex gap-2">
                   <Input
-                    value={newHubOption}
-                    onChange={(e) => setNewHubOption(e.target.value)}
-                    placeholder="Новая опция ступиц"
+                    value={newHubOption.name}
+                    onChange={(e) => setNewHubOption({ ...newHubOption, name: e.target.value })}
+                    placeholder="Название (например, Ступица 4x100)"
                     className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={newHubOption.price}
+                    onChange={(e) => setNewHubOption({ ...newHubOption, price: parseFloat(e.target.value) || 0 })}
+                    placeholder="Доп. цена (₽)"
+                    className="w-32"
                   />
                   <Button type="button" onClick={addHubOption}>
                     <Plus className="w-4 h-4" />

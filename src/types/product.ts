@@ -12,11 +12,11 @@ export interface Product {
   hero_timer_end?: string;
   wheel_options?: {
     default?: string;
-    options?: string[];
+    options?: Array<{ name: string; price: number }>;
   };
   hub_options?: {
     default?: string;
-    options?: string[];
+    options?: Array<{ name: string; price: number }>;
   };
   features?: string[];
   display_order?: number;

@@ -54,6 +54,18 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
   const selectedProductTent = productTents.find(pt => pt.tent_id === selectedTentId);
   const currentImage = selectedProductTent?.image_url || product.base_image_url;
 
+  const selectedWheelPrice = useMemo(() => {
+    if (!selectedWheels || !product.wheel_options?.options) return 0;
+    const wheelOption = product.wheel_options.options.find(opt => opt.name === selectedWheels);
+    return wheelOption?.price || 0;
+  }, [selectedWheels, product.wheel_options]);
+
+  const selectedHubPrice = useMemo(() => {
+    if (!selectedHub || !product.hub_options?.options) return 0;
+    const hubOption = product.hub_options.options.find(opt => opt.name === selectedHub);
+    return hubOption?.price || 0;
+  }, [selectedHub, product.hub_options]);
+
   const totalPrice = useMemo(() => {
     let price = product.base_price;
     
@@ -61,6 +73,12 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
     if (selectedProductTent) {
       price += selectedProductTent.price;
     }
+    
+    // Add wheel price
+    price += selectedWheelPrice;
+    
+    // Add hub price
+    price += selectedHubPrice;
     
     // Add accessories prices
     accessories.forEach(accessory => {
@@ -70,7 +88,7 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
     });
     
     return price;
-  }, [product.base_price, selectedProductTent, accessories, selectedAccessories]);
+  }, [product.base_price, selectedProductTent, selectedWheelPrice, selectedHubPrice, accessories, selectedAccessories]);
 
   const handleAccessoryToggle = (accessoryId: string) => {
     const newSelected = new Set(selectedAccessories);
@@ -272,16 +290,19 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
                 {product.wheel_options?.options && product.wheel_options.options.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="font-bold text-base text-foreground">Колёса</h3>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2">
                       {product.wheel_options.options.map((wheel) => (
                         <Button
-                          key={wheel}
+                          key={wheel.name}
                           type="button"
-                          variant={selectedWheels === wheel ? "default" : "outline"}
-                          onClick={() => setSelectedWheels(wheel)}
-                          className="flex-1 hover:shadow-lg transition-all hover:-translate-y-0.5"
+                          variant={selectedWheels === wheel.name ? "default" : "outline"}
+                          onClick={() => setSelectedWheels(wheel.name)}
+                          className="w-full hover:shadow-lg transition-all hover:-translate-y-0.5 flex justify-between items-center"
                         >
-                          {wheel}
+                          <span>{wheel.name}</span>
+                          {wheel.price > 0 && (
+                            <span className="text-xs opacity-70">+{formatPrice(wheel.price)}</span>
+                          )}
                         </Button>
                       ))}
                     </div>
@@ -292,16 +313,19 @@ export const ProductModal = ({ product, open, onOpenChange }: ProductModalProps)
                 {product.hub_options?.options && product.hub_options.options.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="font-bold text-base text-foreground">Ступица</h3>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2">
                       {product.hub_options.options.map((hub) => (
                         <Button
-                          key={hub}
+                          key={hub.name}
                           type="button"
-                          variant={selectedHub === hub ? "default" : "outline"}
-                          onClick={() => setSelectedHub(hub)}
-                          className="flex-1 hover:shadow-lg transition-all hover:-translate-y-0.5"
+                          variant={selectedHub === hub.name ? "default" : "outline"}
+                          onClick={() => setSelectedHub(hub.name)}
+                          className="w-full hover:shadow-lg transition-all hover:-translate-y-0.5 flex justify-between items-center"
                         >
-                          {hub}
+                          <span>{hub.name}</span>
+                          {hub.price > 0 && (
+                            <span className="text-xs opacity-70">+{formatPrice(hub.price)}</span>
+                          )}
                         </Button>
                       ))}
                     </div>
