@@ -7,7 +7,6 @@ import { useCategories } from "@/hooks/useCategories";
 import { useSiteSetting } from "@/hooks/useSiteSettings";
 import { PrivacyPolicyDialog } from "./PrivacyPolicyDialog";
 import { TermsOfServiceDialog } from "./TermsOfServiceDialog";
-import { CallbackModal } from "./CallbackModal";
 import { useState } from "react";
 
 export const Footer = () => {
@@ -17,7 +16,6 @@ export const Footer = () => {
   const vkUrl = useSiteSetting("vk_url");
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [showCallback, setShowCallback] = useState(false);
 
   const menuItems = [
     ...(categories?.map(cat => ({
@@ -107,7 +105,7 @@ export const Footer = () => {
             <Button
               className="w-full bg-accent hover:bg-accent-hover mb-4"
               size="lg"
-              onClick={() => setShowCallback(true)}
+              onClick={() => window.location.href = `tel:${phone.replace(/\D/g, '')}`}
             >
               <Phone className="w-4 h-4 mr-2" />
               Позвонить
@@ -148,7 +146,6 @@ export const Footer = () => {
 
       <PrivacyPolicyDialog open={showPrivacy} onOpenChange={setShowPrivacy} />
       <TermsOfServiceDialog open={showTerms} onOpenChange={setShowTerms} />
-      <CallbackModal open={showCallback} onOpenChange={setShowCallback} />
     </footer>
   );
 };

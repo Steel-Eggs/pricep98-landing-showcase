@@ -6,76 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Tent } from '@/types/product';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
-const SortableRow = ({ tent, onEdit, onDelete }: { tent: Tent; onEdit: (tent: Tent) => void; onDelete: (id: string) => void }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: tent.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <TableRow ref={setNodeRef} style={style}>
-      <TableCell>
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing hover:text-primary transition-colors"
-        >
-          <GripVertical className="w-5 h-5" />
-        </div>
-      </TableCell>
-      <TableCell>{tent.name}</TableCell>
-      <TableCell>{tent.slug}</TableCell>
-      <TableCell>{tent.default_price} ₽</TableCell>
-      <TableCell className="text-right space-x-2">
-        <Button variant="ghost" size="sm" onClick={() => onEdit(tent)}>
-          <Pencil className="w-4 h-4" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => {
-            if (confirm('Удалить этот тент?')) {
-              onDelete(tent.id);
-            }
-          }}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </TableCell>
-    </TableRow>
-  );
-};
 
 export const TentsManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -83,20 +16,13 @@ export const TentsManager = () => {
   const [formData, setFormData] = useState({ name: '', slug: '', default_price: 0 });
   const queryClient = useQueryClient();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const { data: tents, isLoading } = useQuery({
     queryKey: ['admin-tents'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tents')
         .select('*')
-        .order('display_order', { ascending: true });
+        .order('default_price', { ascending: true });
       if (error) throw error;
       return data as Tent[];
     },
@@ -119,7 +45,6 @@ export const TentsManager = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tents'] });
-      queryClient.invalidateQueries({ queryKey: ['tents'] });
       toast.success(editingTent ? 'Тент обновлён' : 'Тент создан');
       handleClose();
     },
@@ -138,27 +63,10 @@ export const TentsManager = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tents'] });
-      queryClient.invalidateQueries({ queryKey: ['tents'] });
       toast.success('Тент удалён');
     },
     onError: (error) => {
       toast.error('Ошибка: ' + error.message);
-    },
-  });
-
-  const updateOrderMutation = useMutation({
-    mutationFn: async (updates: { id: string; display_order: number }[]) => {
-      const promises = updates.map(({ id, display_order }) =>
-        supabase
-          .from('tents')
-          .update({ display_order })
-          .eq('id', id)
-      );
-      await Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-tents'] });
-      queryClient.invalidateQueries({ queryKey: ['tents'] });
     },
   });
 
@@ -186,25 +94,6 @@ export const TentsManager = () => {
     saveMutation.mutate();
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id && tents) {
-      const oldIndex = tents.findIndex((t) => t.id === active.id);
-      const newIndex = tents.findIndex((t) => t.id === over.id);
-
-      const newTents = arrayMove(tents, oldIndex, newIndex);
-      
-      // Update display_order for all affected items
-      const updates = newTents.map((tent, index) => ({
-        id: tent.id,
-        display_order: index,
-      }));
-
-      updateOrderMutation.mutate(updates);
-    }
-  };
-
   if (isLoading) return <div>Загрузка...</div>;
 
   return (
@@ -217,38 +106,41 @@ export const TentsManager = () => {
         </Button>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12"></TableHead>
-              <TableHead>Название</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Цена по умолчанию</TableHead>
-              <TableHead className="text-right">Действия</TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Название</TableHead>
+            <TableHead>Slug</TableHead>
+            <TableHead>Цена по умолчанию</TableHead>
+            <TableHead className="text-right">Действия</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {tents?.map((tent) => (
+            <TableRow key={tent.id}>
+              <TableCell>{tent.name}</TableCell>
+              <TableCell>{tent.slug}</TableCell>
+              <TableCell>{tent.default_price} ₽</TableCell>
+              <TableCell className="text-right space-x-2">
+                <Button variant="ghost" size="sm" onClick={() => handleEdit(tent)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    if (confirm('Удалить этот тент?')) {
+                      deleteMutation.mutate(tent.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            <SortableContext
-              items={tents?.map(t => t.id) || []}
-              strategy={verticalListSortingStrategy}
-            >
-              {tents?.map((tent) => (
-                <SortableRow
-                  key={tent.id}
-                  tent={tent}
-                  onEdit={handleEdit}
-                  onDelete={(id) => deleteMutation.mutate(id)}
-                />
-              ))}
-            </SortableContext>
-          </TableBody>
-        </Table>
-      </DndContext>
+          ))}
+        </TableBody>
+      </Table>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
