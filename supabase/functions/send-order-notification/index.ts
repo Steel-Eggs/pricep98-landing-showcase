@@ -1,7 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SMTP_HOST = Deno.env.get("SMTP_HOST");
+const SMTP_PORT = Deno.env.get("SMTP_PORT");
+const SMTP_USER = Deno.env.get("SMTP_USER");
+const SMTP_PASSWORD = Deno.env.get("SMTP_PASSWORD");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -193,29 +197,29 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
-    // Send email via Resend API
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+    // Send email via SMTP
+    const client = new SMTPClient({
+      connection: {
+        hostname: SMTP_HOST!,
+        port: parseInt(SMTP_PORT || "465"),
+        tls: true,
+        auth: {
+          username: SMTP_USER!,
+          password: SMTP_PASSWORD!,
+        },
       },
-      body: JSON.stringify({
-        from: "ПРИЦЕП98 <onboarding@resend.dev>",
-        to: recipientEmails,
-        subject: emailSubject,
-        html: emailHtml,
-      }),
     });
 
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      console.error("Resend API error:", errorData);
-      throw new Error(`Failed to send email: ${JSON.stringify(errorData)}`);
-    }
+    await client.send({
+      from: `ПРИЦЕП98 <${SMTP_USER}>`,
+      to: recipientEmails.join(", "),
+      subject: emailSubject,
+      content: emailHtml,
+      html: emailHtml,
+    });
 
-    const emailData = await emailResponse.json();
-    console.log("Email sent successfully:", emailData);
+    await client.close();
+    console.log("Email sent successfully via SMTP");
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
