@@ -80,6 +80,31 @@ const handler = async (req: Request): Promise<Response> => {
     
     const requestData: CallbackRequest | PromoRequest | OrderRequest = await req.json();
 
+    // Save submission to database
+    const submissionData: any = {
+      type: requestData.type,
+      name: requestData.name,
+      phone: requestData.phone,
+    };
+
+    if (requestData.type === "order") {
+      submissionData.product_name = requestData.productName;
+      submissionData.configuration = requestData.configuration;
+    } else if (requestData.type === "promo") {
+      submissionData.product_name = requestData.productName;
+    }
+
+    const { error: insertError } = await supabase
+      .from("submissions")
+      .insert(submissionData);
+
+    if (insertError) {
+      console.error("Error saving submission:", insertError);
+      // Continue with email even if DB insert fails
+    } else {
+      console.log("Submission saved to database");
+    }
+
     let emailSubject = "";
     let emailHtml = "";
 

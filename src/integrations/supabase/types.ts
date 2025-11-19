@@ -282,6 +282,48 @@ export type Database = {
           },
         ]
       }
+      submissions: {
+        Row: {
+          configuration: Json | null
+          created_at: string
+          email: string | null
+          id: string
+          message: string | null
+          name: string
+          phone: string
+          product_name: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          configuration?: Json | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string | null
+          name: string
+          phone: string
+          product_name?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          configuration?: Json | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          product_name?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tents: {
         Row: {
           created_at: string | null

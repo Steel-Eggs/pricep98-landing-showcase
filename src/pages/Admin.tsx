@@ -9,14 +9,15 @@ import { ProductsManager } from '@/components/admin/ProductsManager';
 import { AccessoriesManager } from '@/components/admin/AccessoriesManager';
 import { TentsManager } from '@/components/admin/TentsManager';
 import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
-import { LogOut, Package, Tags, Wrench, Tent, Home, Settings } from 'lucide-react';
+import { SubmissionsManager } from '@/components/admin/SubmissionsManager';
+import { LogOut, Package, Tags, Wrench, Tent, Home, Settings, Inbox } from 'lucide-react';
 import logoMono from '@/assets/logo-mono.png';
 import { toast } from 'sonner';
 
 const AdminPage = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState('submissions');
 
   const handleSignOut = async () => {
     await signOut();
@@ -49,7 +50,11 @@ const AdminPage = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
+            <TabsTrigger value="submissions" className="flex items-center gap-2">
+              <Inbox className="w-4 h-4" />
+              Заявки
+            </TabsTrigger>
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tags className="w-4 h-4" />
               Категории
@@ -71,6 +76,10 @@ const AdminPage = () => {
               Настройки сайта
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="submissions">
+            <SubmissionsManager />
+          </TabsContent>
 
           <TabsContent value="categories">
             <CategoriesManager />
