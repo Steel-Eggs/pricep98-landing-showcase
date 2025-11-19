@@ -7,7 +7,6 @@ export const LocationSection = () => {
   const addressFull = useSiteSetting("address_full");
   const workingHours = useSiteSetting("working_hours");
   const phone = useSiteSetting("phone");
-  const email = useSiteSetting("email");
   const coordinates = useSiteSetting("coordinates");
 
   const handleNavigate = () => {
@@ -70,8 +69,8 @@ export const LocationSection = () => {
                 </p>
                 <p>
                   <span className="text-muted-foreground">Email:</span>{" "}
-                  <a href={`mailto:${email}`} className="font-medium hover:text-primary transition-colors">
-                    {email || "info@pricep98.ru"}
+                  <a href="mailto:info@pricep98.ru" className="font-medium hover:text-primary transition-colors">
+                    info@pricep98.ru
                   </a>
                 </p>
               </div>
