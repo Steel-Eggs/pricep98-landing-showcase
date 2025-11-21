@@ -247,11 +247,15 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("SMTP client initialized, attempting to send email...");
     
     await client.send({
-      from: SMTP_USER!,
+      from: `"ПРИЦЕП98" <${SMTP_USER}>`,
       to: recipientEmails.join(", "),
       subject: emailSubject,
       content: "auto",
       html: emailHtml,
+      headers: {
+        "From": `"ПРИЦЕП98" <${SMTP_USER}>`,
+        "Reply-To": SMTP_USER!,
+      },
     });
 
     await client.close();
