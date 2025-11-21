@@ -246,14 +246,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("SMTP client initialized, attempting to send email...");
     
+    // Формируем From заголовок явно
+    const fromHeader = `"ПРИЦЕП98" <${SMTP_USER}>`;
+    console.log(`From header: ${fromHeader}`);
+    
     await client.send({
-      from: `"ПРИЦЕП98" <${SMTP_USER}>`,
+      from: fromHeader,
       to: recipientEmails.join(", "),
       subject: emailSubject,
-      content: "auto",
       html: emailHtml,
       headers: {
-        "From": `"ПРИЦЕП98" <${SMTP_USER}>`,
         "Reply-To": SMTP_USER!,
       },
     });
