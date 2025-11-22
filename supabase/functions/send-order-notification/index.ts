@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const SMTP_HOST = Deno.env.get("SMTP_HOST");
 const SMTP_PORT = Deno.env.get("SMTP_PORT");
@@ -12,6 +11,105 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// Функция для отправки email через прямое SMTP соединение
+async function sendEmailViaSMTP(config: {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+}) {
+  const useTLS = config.port === 465;
+  
+  console.log(`Connecting to SMTP server: ${config.host}:${config.port} (TLS: ${useTLS})`);
+  
+  // Подключаемся к SMTP серверу
+  const conn = useTLS 
+    ? await Deno.connectTls({ hostname: config.host, port: config.port })
+    : await Deno.connect({ hostname: config.host, port: config.port });
+  
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  
+  // Функция для отправки команды и чтения ответа
+  async function sendCommand(command: string): Promise<string> {
+    console.log(`> ${command}`);
+    await conn.write(encoder.encode(command + "\r\n"));
+    
+    const buffer = new Uint8Array(4096);
+    const n = await conn.read(buffer);
+    const response = decoder.decode(buffer.subarray(0, n || 0));
+    console.log(`< ${response.trim()}`);
+    return response;
+  }
+  
+  try {
+    // Читаем приветствие сервера
+    const buffer = new Uint8Array(4096);
+    const n = await conn.read(buffer);
+    const greeting = decoder.decode(buffer.subarray(0, n || 0));
+    console.log(`< ${greeting.trim()}`);
+    
+    // EHLO
+    await sendCommand(`EHLO ${config.host}`);
+    
+    // AUTH LOGIN
+    await sendCommand("AUTH LOGIN");
+    await sendCommand(btoa(config.username));
+    await sendCommand(btoa(config.password));
+    
+    // MAIL FROM
+    await sendCommand(`MAIL FROM:<${config.username}>`);
+    
+    // RCPT TO для каждого получателя
+    for (const recipient of config.to) {
+      await sendCommand(`RCPT TO:<${recipient}>`);
+    }
+    
+    // DATA
+    await sendCommand("DATA");
+    
+    // Формируем тело письма с правильными заголовками
+    const boundary = "----=_NextPart_" + Date.now();
+    const emailBody = [
+      `From: ${config.from}`,
+      `To: ${config.to.join(", ")}`,
+      `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(config.subject)))}?=`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      `Date: ${new Date().toUTCString()}`,
+      `Reply-To: ${config.username}`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/html; charset="UTF-8"`,
+      `Content-Transfer-Encoding: base64`,
+      ``,
+      btoa(unescape(encodeURIComponent(config.html))).match(/.{1,76}/g)?.join("\r\n") || "",
+      ``,
+      `--${boundary}--`,
+      `.`,
+    ].join("\r\n");
+    
+    console.log("Sending email body...");
+    await conn.write(encoder.encode(emailBody + "\r\n"));
+    
+    // Читаем ответ на DATA
+    const dataResponse = new Uint8Array(4096);
+    const dataN = await conn.read(dataResponse);
+    const dataResult = decoder.decode(dataResponse.subarray(0, dataN || 0));
+    console.log(`< ${dataResult.trim()}`);
+    
+    // QUIT
+    await sendCommand("QUIT");
+    
+  } finally {
+    conn.close();
+  }
+}
 
 interface CallbackRequest {
   type: "callback";
@@ -222,7 +320,7 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
-    // Send email via SMTP
+    // Send email via SMTP using native TCP
     console.log("Preparing to send email via SMTP");
     console.log(`SMTP Host: ${SMTP_HOST}`);
     console.log(`SMTP Port: ${SMTP_PORT}`);
@@ -232,36 +330,18 @@ const handler = async (req: Request): Promise<Response> => {
     
     const smtpPort = parseInt(SMTP_PORT || "587");
     
-    const client = new SMTPClient({
-      connection: {
-        hostname: SMTP_HOST!,
-        port: smtpPort,
-        tls: smtpPort === 465,
-        auth: {
-          username: SMTP_USER!,
-          password: SMTP_PASSWORD!,
-        },
-      },
-    });
-
-    console.log("SMTP client initialized, attempting to send email...");
-    
-    // Формируем From заголовок явно
-    const fromHeader = `"ПРИЦЕП98" <${SMTP_USER}>`;
-    console.log(`From header: ${fromHeader}`);
-    
-    await client.send({
-      from: fromHeader,
-      to: recipientEmails.join(", "),
+    // Используем прямое SMTP соединение
+    await sendEmailViaSMTP({
+      host: SMTP_HOST!,
+      port: smtpPort,
+      username: SMTP_USER!,
+      password: SMTP_PASSWORD!,
+      from: `"ПРИЦЕП98" <${SMTP_USER}>`,
+      to: recipientEmails,
       subject: emailSubject,
       html: emailHtml,
-      headers: {
-        "From": fromHeader,
-        "Reply-To": SMTP_USER!,
-      },
     });
-
-    await client.close();
+    
     console.log("Email sent successfully via SMTP");
 
     return new Response(JSON.stringify({ success: true }), {
