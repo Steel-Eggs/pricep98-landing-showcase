@@ -256,6 +256,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject: emailSubject,
       html: emailHtml,
       headers: {
+        "From": fromHeader,
         "Reply-To": SMTP_USER!,
       },
     });
