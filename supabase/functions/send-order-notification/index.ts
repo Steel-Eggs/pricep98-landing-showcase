@@ -18,7 +18,6 @@ async function sendEmailViaSMTP(config: {
   port: number;
   username: string;
   password: string;
-  from: string;
   to: string[];
   subject: string;
   html: string;
@@ -75,8 +74,9 @@ async function sendEmailViaSMTP(config: {
     
     // Формируем тело письма с правильными заголовками
     const boundary = "----=_NextPart_" + Date.now();
+    const senderName = "=?UTF-8?B?" + btoa(unescape(encodeURIComponent("ПРИЦЕП98"))) + "?=";
     const emailBody = [
-      `From: ${config.from}`,
+      `From: ${senderName} <${config.username}>`,
       `To: ${config.to.join(", ")}`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(config.subject)))}?=`,
       `MIME-Version: 1.0`,
@@ -336,7 +336,6 @@ const handler = async (req: Request): Promise<Response> => {
       port: smtpPort,
       username: SMTP_USER!,
       password: SMTP_PASSWORD!,
-      from: `"ПРИЦЕП98" <${SMTP_USER}>`,
       to: recipientEmails,
       subject: emailSubject,
       html: emailHtml,
