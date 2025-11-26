@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Phone, MapPin, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.svg";
 import { CallbackModal } from "./CallbackModal";
 import { useCategories } from "@/hooks/useCategories";
 import { useSiteSetting } from "@/hooks/useSiteSettings";

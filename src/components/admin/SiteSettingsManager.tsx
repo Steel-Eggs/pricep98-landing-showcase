@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useSiteSettings, useUpdateSiteSetting } from "@/hooks/useSiteSettings";
@@ -23,6 +24,7 @@ export const SiteSettingsManager = () => {
     vk_url: "",
     privacy_policy: "",
     terms_of_service: "",
+    show_hero_section: "false",
   });
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export const SiteSettingsManager = () => {
         vk_url: settings.vk_url || "",
         privacy_policy: settings.privacy_policy || "",
         terms_of_service: settings.terms_of_service || "",
+        show_hero_section: settings.show_hero_section || "false",
       });
     }
   }, [settings]);
@@ -88,6 +91,33 @@ export const SiteSettingsManager = () => {
           Сохранить всё
         </Button>
       </div>
+
+      {/* Настройки отображения */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Настройки отображения</CardTitle>
+          <CardDescription>Управление главной секцией сайта</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="show_hero_section">Показывать Hero-секцию</Label>
+              <p className="text-sm text-muted-foreground">
+                Переключение между Hero-секцией и слайдером баннеров
+              </p>
+            </div>
+            <Switch
+              id="show_hero_section"
+              checked={formData.show_hero_section === "true"}
+              onCheckedChange={(checked) => {
+                const newValue = checked ? "true" : "false";
+                setFormData({ ...formData, show_hero_section: newValue });
+                handleSave("show_hero_section");
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Контакты */}
       <Card>
