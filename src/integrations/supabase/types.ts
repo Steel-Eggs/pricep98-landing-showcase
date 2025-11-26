@@ -41,48 +41,6 @@ export type Database = {
         }
         Relationships: []
       }
-      banners: {
-        Row: {
-          background_gradient: string
-          button_text: string | null
-          button_url: string | null
-          created_at: string
-          display_order: number
-          id: string
-          image_url: string | null
-          is_active: boolean
-          subtitle: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          background_gradient?: string
-          button_text?: string | null
-          button_url?: string | null
-          created_at?: string
-          display_order?: number
-          id?: string
-          image_url?: string | null
-          is_active?: boolean
-          subtitle?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          background_gradient?: string
-          button_text?: string | null
-          button_url?: string | null
-          created_at?: string
-          display_order?: number
-          id?: string
-          image_url?: string | null
-          is_active?: boolean
-          subtitle?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       categories: {
         Row: {
           created_at: string | null

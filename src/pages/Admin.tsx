@@ -8,10 +8,9 @@ import { CategoriesManager } from '@/components/admin/CategoriesManager';
 import { ProductsManager } from '@/components/admin/ProductsManager';
 import { AccessoriesManager } from '@/components/admin/AccessoriesManager';
 import { TentsManager } from '@/components/admin/TentsManager';
-import { BannersManager } from '@/components/admin/BannersManager';
 import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
 import { SubmissionsManager } from '@/components/admin/SubmissionsManager';
-import { LogOut, Package, Tags, Wrench, Tent, Home, Settings, Inbox, Image } from 'lucide-react';
+import { LogOut, Package, Tags, Wrench, Tent, Home, Settings, Inbox } from 'lucide-react';
 import logoMono from '@/assets/logo-mono.png';
 import { toast } from 'sonner';
 
@@ -51,7 +50,7 @@ const AdminPage = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="submissions" className="flex items-center gap-2">
               <Inbox className="w-4 h-4" />
               Заявки
@@ -71,10 +70,6 @@ const AdminPage = () => {
             <TabsTrigger value="accessories" className="flex items-center gap-2">
               <Wrench className="w-4 h-4" />
               Комплектующие
-            </TabsTrigger>
-            <TabsTrigger value="banners" className="flex items-center gap-2">
-              <Image className="w-4 h-4" />
-              Баннеры
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -98,17 +93,13 @@ const AdminPage = () => {
             <TentsManager />
           </TabsContent>
 
-        <TabsContent value="accessories">
-          <AccessoriesManager />
-        </TabsContent>
+          <TabsContent value="accessories">
+            <AccessoriesManager />
+          </TabsContent>
 
-        <TabsContent value="banners">
-          <BannersManager />
-        </TabsContent>
-
-        <TabsContent value="settings">
-          <SiteSettingsManager />
-        </TabsContent>
+          <TabsContent value="settings">
+            <SiteSettingsManager />
+          </TabsContent>
         </Tabs>
       </main>
     </div>

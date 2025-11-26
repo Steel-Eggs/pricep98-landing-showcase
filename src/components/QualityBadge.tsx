@@ -1,5 +1,5 @@
 import { Award, Sparkles } from "lucide-react";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo.png";
 import { DecorativeBlob } from "./DecorativeBlob";
 
 export const QualityBadge = () => {
