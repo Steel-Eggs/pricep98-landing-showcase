@@ -84,7 +84,7 @@ export const BannerSlider = () => {
                   />
                 )}
                 {/* Dark overlay for text readability */}
-                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 bg-primary/70" />
 
                 {/* Content */}
                 <div className="relative z-10 container mx-auto px-4 text-center text-white">
