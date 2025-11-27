@@ -104,9 +104,7 @@ export const BannersManager = () => {
       // Upload file directly (same approach as trailer-images)
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from('banners')
-        .upload(fileName, file, {
-          contentType: file.type
-        });
+        .upload(fileName, file);
 
       if (uploadError) {
         console.error('Upload error details:', uploadError);
