@@ -2,3 +2,6 @@ project_id = "bsmpnfhtsvdiedlawtpd"
 
 [functions.send-order-notification]
 verify_jwt = false
+
+[functions.generate-banner-image]
+verify_jwt = false

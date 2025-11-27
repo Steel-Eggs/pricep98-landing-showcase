@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useBanners } from '@/hooks/useBanners';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,6 +9,7 @@ export const BannerSlider = () => {
   const { data: banners, isLoading } = useBanners();
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -27,12 +28,14 @@ export const BannerSlider = () => {
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
 
-  // Auto-play every 3 seconds
+  // Auto-play every 3 seconds, pause on hover
   useEffect(() => {
     if (!emblaApi) return;
 
     const intervalId = setInterval(() => {
-      emblaApi.scrollNext();
+      if (!isPaused) {
+        emblaApi.scrollNext();
+      }
     }, 3000);
 
     emblaApi.on('select', onSelect);
@@ -42,7 +45,7 @@ export const BannerSlider = () => {
       clearInterval(intervalId);
       emblaApi.off('select', onSelect);
     };
-  }, [emblaApi, onSelect]);
+  }, [emblaApi, onSelect, isPaused]);
 
   if (isLoading) {
     return (
@@ -57,7 +60,11 @@ export const BannerSlider = () => {
   }
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section 
+      className="relative w-full overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       <div className="embla" ref={emblaRef}>
         <div className="embla__container flex">
           {banners.map((banner, index) => (
