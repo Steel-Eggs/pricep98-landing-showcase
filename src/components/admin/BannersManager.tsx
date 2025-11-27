@@ -119,9 +119,11 @@ export const BannersManager = () => {
         .from('banners')
         .getPublicUrl(fileName);
 
-      console.log('Public URL:', publicUrlData.publicUrl);
+      // Add cache-busting parameter to force fresh load
+      const imageUrlWithCacheBust = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+      console.log('Public URL:', imageUrlWithCacheBust);
 
-      setFormData(prev => ({ ...prev, image_url: publicUrlData.publicUrl }));
+      setFormData(prev => ({ ...prev, image_url: imageUrlWithCacheBust }));
       toast.success('Изображение загружено');
     } catch (error) {
       console.error('Upload error:', error);
@@ -250,7 +252,8 @@ export const BannersManager = () => {
                 {banner.image_url ? (
                   <div className="w-16 h-10 bg-muted border border-border rounded overflow-hidden">
                     <img 
-                      src={banner.image_url} 
+                      key={banner.image_url}
+                      src={`${banner.image_url}${banner.image_url.includes('?') ? '&' : '?'}t=${banner.updated_at}`} 
                       alt="" 
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -338,7 +341,8 @@ export const BannersManager = () => {
               {formData.image_url ? (
                 <div className="relative">
                   <img
-                    src={formData.image_url}
+                    key={formData.image_url}
+                    src={formData.image_url.includes('?') ? formData.image_url : `${formData.image_url}?t=${Date.now()}`}
                     alt="Превью баннера"
                     className="w-full h-48 object-cover rounded-lg border"
                   />
