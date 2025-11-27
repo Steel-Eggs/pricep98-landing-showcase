@@ -77,11 +77,14 @@ export const BannerSlider = () => {
               >
                 {/* Background image if exists */}
                 {banner.image_url && (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center opacity-30"
-                    style={{ backgroundImage: `url(${banner.image_url})` }}
+                  <img
+                    src={banner.image_url}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 )}
+                {/* Dark overlay for text readability */}
+                <div className="absolute inset-0 bg-black/40" />
 
                 {/* Content */}
                 <div className="relative z-10 container mx-auto px-4 text-center text-white">
