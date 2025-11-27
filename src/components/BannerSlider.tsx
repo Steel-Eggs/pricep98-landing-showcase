@@ -73,11 +73,7 @@ export const BannerSlider = () => {
               className="embla__slide flex-[0_0_100%] min-w-0"
             >
               <div
-                className={cn(
-                  "relative w-full h-[400px] md:h-[500px] flex items-center justify-center",
-                  "bg-gradient-to-r",
-                  banner.background_gradient
-                )}
+                className="relative w-full h-[400px] md:h-[500px] flex items-center justify-center bg-primary"
               >
                 {/* Background image if exists */}
                 {banner.image_url && (
