@@ -108,7 +108,7 @@ export const BannersManager = () => {
         .from('banners')
         .getPublicUrl(fileName);
 
-      setFormData({ ...formData, image_url: publicUrlData.publicUrl });
+      setFormData(prev => ({ ...prev, image_url: publicUrlData.publicUrl }));
       toast.success('Изображение загружено');
     } catch (error) {
       console.error('Upload error:', error);
@@ -122,7 +122,7 @@ export const BannersManager = () => {
   };
 
   const removeImage = () => {
-    setFormData({ ...formData, image_url: '' });
+    setFormData(prev => ({ ...prev, image_url: '' }));
   };
 
   const handleSubmit = async () => {
@@ -240,7 +240,14 @@ export const BannersManager = () => {
                       src={banner.image_url} 
                       alt="" 
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
                     />
+                    <div className="hidden w-full h-full flex items-center justify-center">
+                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                    </div>
                   </div>
                 ) : (
                   <div className="w-16 h-10 bg-muted border border-border rounded flex items-center justify-center">
@@ -297,7 +304,7 @@ export const BannersManager = () => {
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="ПОДАРОК КАЖДОМУ ПОКУПАТЕЛЮ"
               />
             </div>
@@ -307,7 +314,7 @@ export const BannersManager = () => {
               <Textarea
                 id="subtitle"
                 value={formData.subtitle}
-                onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, subtitle: e.target.value }))}
                 placeholder="Выбирай любой прицеп — получай опорное колесо в подарок!"
                 rows={3}
               />
@@ -369,7 +376,7 @@ export const BannersManager = () => {
                 <Input
                   id="button_text"
                   value={formData.button_text}
-                  onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, button_text: e.target.value }))}
                   placeholder="Подробнее"
                 />
               </div>
@@ -378,7 +385,7 @@ export const BannersManager = () => {
                 <Input
                   id="button_url"
                   value={formData.button_url}
-                  onChange={(e) => setFormData({ ...formData, button_url: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, button_url: e.target.value }))}
                   placeholder="#trailers"
                 />
               </div>
@@ -391,14 +398,14 @@ export const BannersManager = () => {
                   id="display_order"
                   type="number"
                   value={formData.display_order}
-                  onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
                 />
               </div>
               <div className="flex items-center space-x-2 pt-6">
                 <Switch
                   id="is_active"
                   checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
                 />
                 <Label htmlFor="is_active">Активен</Label>
               </div>
