@@ -92,23 +92,19 @@ export const BannersManager = () => {
 
     setIsUploading(true);
     try {
-      // Read file as ArrayBuffer for reliable upload
-      const arrayBuffer = await file.arrayBuffer();
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `banner-${Date.now()}.${fileExt}`;
 
       console.log('Uploading file:', {
         name: fileName,
         type: file.type,
-        size: file.size,
-        arrayBufferSize: arrayBuffer.byteLength
+        size: file.size
       });
 
+      // Upload file directly (same approach as trailer-images)
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from('banners')
-        .upload(fileName, arrayBuffer, {
-          cacheControl: '3600',
-          upsert: false,
+        .upload(fileName, file, {
           contentType: file.type
         });
 
