@@ -35,7 +35,6 @@ export const BannersManager = () => {
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
-    background_gradient: 'from-blue-600 to-purple-600',
     button_text: '',
     button_url: '',
     image_url: '',
@@ -47,7 +46,6 @@ export const BannersManager = () => {
     setFormData({
       title: '',
       subtitle: '',
-      background_gradient: 'from-blue-600 to-purple-600',
       button_text: '',
       button_url: '',
       image_url: '',
@@ -67,7 +65,6 @@ export const BannersManager = () => {
     setFormData({
       title: banner.title,
       subtitle: banner.subtitle || '',
-      background_gradient: banner.background_gradient,
       button_text: banner.button_text || '',
       button_url: banner.button_url || '',
       image_url: banner.image_url || '',
@@ -138,7 +135,6 @@ export const BannersManager = () => {
       const bannerData = {
         title: formData.title.trim(),
         subtitle: formData.subtitle.trim() || null,
-        background_gradient: formData.background_gradient,
         button_text: formData.button_text.trim() || null,
         button_url: formData.button_url.trim() || null,
         image_url: formData.image_url.trim() || null,
@@ -229,7 +225,6 @@ export const BannersManager = () => {
             <TableHead className="w-20">Фото</TableHead>
             <TableHead>Заголовок</TableHead>
             <TableHead>Описание</TableHead>
-            <TableHead className="w-24">Градиент</TableHead>
             <TableHead className="w-20">Активен</TableHead>
             <TableHead className="text-right w-28">Действия</TableHead>
           </TableRow>
@@ -256,11 +251,6 @@ export const BannersManager = () => {
               </TableCell>
               <TableCell className="max-w-[300px] truncate">
                 {banner.subtitle || '—'}
-              </TableCell>
-              <TableCell>
-                <div
-                  className={`w-20 h-6 rounded bg-gradient-to-r ${banner.background_gradient}`}
-                />
               </TableCell>
               <TableCell>
                 <Switch
@@ -368,19 +358,6 @@ export const BannersManager = () => {
                 accept="image/*"
                 onChange={handleImageUpload}
                 className="hidden"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gradient">Градиент (Tailwind классы)</Label>
-              <Input
-                id="gradient"
-                value={formData.background_gradient}
-                onChange={(e) => setFormData({ ...formData, background_gradient: e.target.value })}
-                placeholder="from-blue-600 to-purple-600"
-              />
-              <div
-                className={`w-full h-12 rounded bg-gradient-to-r ${formData.background_gradient}`}
               />
             </div>
 
