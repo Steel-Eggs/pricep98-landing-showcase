@@ -10,7 +10,8 @@ import { AccessoriesManager } from '@/components/admin/AccessoriesManager';
 import { TentsManager } from '@/components/admin/TentsManager';
 import { SiteSettingsManager } from '@/components/admin/SiteSettingsManager';
 import { SubmissionsManager } from '@/components/admin/SubmissionsManager';
-import { LogOut, Package, Tags, Wrench, Tent, Home, Settings, Inbox } from 'lucide-react';
+import { BannersManager } from '@/components/admin/BannersManager';
+import { LogOut, Package, Tags, Wrench, Tent, Home, Settings, Inbox, Presentation } from 'lucide-react';
 import logoMono from '@/assets/logo-mono.png';
 import { toast } from 'sonner';
 
@@ -50,10 +51,14 @@ const AdminPage = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="submissions" className="flex items-center gap-2">
               <Inbox className="w-4 h-4" />
               Заявки
+            </TabsTrigger>
+            <TabsTrigger value="banners" className="flex items-center gap-2">
+              <Presentation className="w-4 h-4" />
+              Баннеры
             </TabsTrigger>
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tags className="w-4 h-4" />
@@ -73,12 +78,16 @@ const AdminPage = () => {
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Настройки сайта
+              Настройки
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="submissions">
             <SubmissionsManager />
+          </TabsContent>
+
+          <TabsContent value="banners">
+            <BannersManager />
           </TabsContent>
 
           <TabsContent value="categories">

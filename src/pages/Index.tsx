@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
+// import { HeroSection } from "@/components/HeroSection"; // Закомментировано - можно активировать через админку
+import { BannerSlider } from "@/components/BannerSlider";
 import { BenefitsSection } from "@/components/BenefitsSection";
 import { QualityBadge } from "@/components/QualityBadge";
 import { ProductSection } from "@/components/ProductSection";
@@ -14,7 +15,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <HeroSection />
+        {/* <HeroSection /> */}
+        <BannerSlider />
         <BenefitsSection />
         <QualityBadge />
         {!isLoading && categories?.map((category) => (
