@@ -92,21 +92,38 @@ export const BannersManager = () => {
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      // Read file as ArrayBuffer for reliable upload
+      const arrayBuffer = await file.arrayBuffer();
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `banner-${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file:', {
+        name: fileName,
+        type: file.type,
+        size: file.size,
+        arrayBufferSize: arrayBuffer.byteLength
+      });
+
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('banners')
-        .upload(fileName, file, {
+        .upload(fileName, arrayBuffer, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: file.type
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload success:', uploadData);
 
       const { data: publicUrlData } = supabase.storage
         .from('banners')
         .getPublicUrl(fileName);
+
+      console.log('Public URL:', publicUrlData.publicUrl);
 
       setFormData(prev => ({ ...prev, image_url: publicUrlData.publicUrl }));
       toast.success('Изображение загружено');
