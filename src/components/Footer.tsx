@@ -137,14 +137,19 @@ export const Footer = () => {
 
         <div className="border-t border-background/20 pt-6 pb-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 order-2 md:order-1">
+            <a 
+              href="https://steeleggs.ru" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 order-2 md:order-1 group"
+            >
               <img
                 src={developerLogo}
                 alt="Steel Eggs"
-                className="h-7 w-auto opacity-80 hover:opacity-100 transition-opacity"
+                className="h-7 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
               />
-              <span className="text-sm text-background/60">разработка и развитие сайтов</span>
-            </div>
+              <span className="text-sm text-background/60 group-hover:text-background/80 transition-colors">разработка и развитие сайтов</span>
+            </a>
 
             <p className="text-sm text-background/70 order-1 md:order-2">2025 © Все права защищены. ПРИЦЕП98</p>
           </div>
